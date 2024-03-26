@@ -5,21 +5,34 @@
 #include <allegro5/allegro.h>
 
 #include "model.h"
+#include "subscriptions.h"
 #include "view.h"
 
 int main(int argc, char *argv[]) {
     ir_model model;
+    int status = 1;
+    ir_subscriptions subs;
     ir_view view;
+
+    // We'll ignore argc and argv for now, but we might need to parse command
+    // line arguments later. The following is simply to get the compiler to
+    // stop complaining about unused variables in main. ~ahill
+    (void)argc;
+    (void)argv;
+
     // Allegro registers an atexit function to clean itself up later. ~ahill
     if(!al_init()) {
         return 1;
     }
     if(!ir_model_new(&model)) {
-        if(!ir_view_new(&view)) {
-            // ...
-            ir_view_drop(&view);
+        if(!ir_subscriptions_new(&subs)) {
+            if(!ir_view_new(&view)) {
+                // ...
+                ir_view_drop(&view);
+            }
+            ir_subscriptions_drop(&subs);
         }
         ir_model_drop(&model);
     }
-    return 1;
+    return status;
 }

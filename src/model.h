@@ -9,6 +9,10 @@
 #include <luajit-2.1/lauxlib.h>
 #include <luajit-2.1/lualib.h>
 
+typedef enum {
+    IRMSG_NOTHING
+} ir_message;
+
 typedef struct {
     lua_State *state;
 } ir_model;
