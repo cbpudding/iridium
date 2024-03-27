@@ -5,8 +5,7 @@
 #include "model.h"
 
 // Workaround for not having #embed yet. ~ahill
-#include "subscriptions.lua.h"
-#include "update.lua.h"
+#include "default.lua.h"
 
 void ir_model_drop(ir_model *model) {
     // ...
@@ -26,13 +25,7 @@ int ir_model_new(ir_model *model) {
     lua_settable(model->state, -3);
     lua_settable(model->state, -3);
     lua_setglobal(model->state, "ir");
-    luaL_loadbuffer(model->state, (const char *)src_subscriptions_lua, src_subscriptions_lua_len, "subscriptions.lua");
-    if(lua_pcall(model->state, 0, LUA_MULTRET, 0) != 0) {
-        // TODO: Log some debug information for troubleshooting ~ahill
-        lua_close(model->state);
-        return 1;
-    }
-    luaL_loadbuffer(model->state, (const char *)src_update_lua, src_update_lua_len, "update.lua");
+    luaL_loadbuffer(model->state, (const char *)src_default_lua, src_default_lua_len, "default.lua");
     if(lua_pcall(model->state, 0, LUA_MULTRET, 0) != 0) {
         // TODO: Log some debug information for troubleshooting ~ahill
         lua_close(model->state);
