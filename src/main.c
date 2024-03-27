@@ -5,13 +5,11 @@
 #include <allegro5/allegro.h>
 
 #include "model.h"
-#include "subscriptions.h"
 #include "view.h"
 
 int main(int argc, char *argv[]) {
     ir_model model;
     int status = 1;
-    ir_subscriptions subs;
     ir_view view;
 
     // We'll ignore argc and argv for now, but we might need to parse command
@@ -25,12 +23,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     if(!ir_model_new(&model)) {
-        if(!ir_subscriptions_new(&subs)) {
-            if(!ir_view_new(&view)) {
-                // ...
-                ir_view_drop(&view);
-            }
-            ir_subscriptions_drop(&subs);
+        if(!ir_view_new(&view)) {
+            // ...
+            ir_view_drop(&view);
         }
         ir_model_drop(&model);
     }
