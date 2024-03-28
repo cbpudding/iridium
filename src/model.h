@@ -10,7 +10,10 @@
 #include <luajit-2.1/lualib.h>
 
 typedef enum {
-    IRMSG_NOTHING
+    // No operation
+    IRMSG_NOTHING,
+    // Starting point for custom message codes. Ignored by the engine.
+    IRMSG_CUSTOM
 } ir_message;
 
 typedef struct {
@@ -19,5 +22,7 @@ typedef struct {
 
 void ir_model_drop(ir_model *model);
 int ir_model_new(ir_model *model);
+
+int ir_model_update(ir_model *model, ir_message msg);
 
 #endif

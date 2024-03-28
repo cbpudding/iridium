@@ -19,9 +19,12 @@ int ir_model_new(ir_model *model) {
     }
     lua_createtable(model->state, 0, 1);
     lua_pushstring(model->state, "msg");
-    lua_createtable(model->state, 0, 1);
+    lua_createtable(model->state, 0, 2);
     lua_pushstring(model->state, "NOTHING");
     lua_pushinteger(model->state, IRMSG_NOTHING);
+    lua_settable(model->state, -3);
+    lua_pushstring(model->state, "CUSTOM");
+    lua_pushinteger(model->state, IRMSG_CUSTOM);
     lua_settable(model->state, -3);
     lua_settable(model->state, -3);
     lua_setglobal(model->state, "ir");
@@ -32,5 +35,27 @@ int ir_model_new(ir_model *model) {
         return 1;
     }
     // ...
+    return 0;
+}
+
+int ir_model_update(ir_model *model, ir_message msg) {
+    lua_getglobal(model->state, "ir");
+    if(!lua_istable(model->state, -1)) {
+        // TODO: Log an error! ~ahill
+        lua_pop(model->state, 1);
+        return 1;
+    }
+    lua_getfield(model->state, -1, "update");
+    if(!lua_isfunction(model->state, -1)) {
+        // TODO: Log yet another error! ~ahill
+        lua_pop(model->state, 2);
+        return 1;
+    }
+    lua_pushinteger(model->state, msg);
+    if(!lua_pcall(model->state, 1, 0, 0)) {
+        // TODO: Seriously, the next thing I should work on is a logging framework. ~ahill
+        lua_pop(model->state, 1);
+        return 1;
+    }
     return 0;
 }
