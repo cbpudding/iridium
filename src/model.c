@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "log.h"
 #include "model.h"
 
 // Workaround for not having #embed yet. ~ahill
@@ -29,8 +30,8 @@ int ir_model_new(ir_model *model) {
     lua_settable(model->state, -3);
     lua_setglobal(model->state, "ir");
     luaL_loadbuffer(model->state, (const char *)src_default_lua, src_default_lua_len, "default.lua");
-    if(lua_pcall(model->state, 0, LUA_MULTRET, 0) != 0) {
-        // TODO: Log some debug information for troubleshooting ~ahill
+    if(lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
+        ir_error("ir_model_new: Failed to initialize Lua: %s", lua_tostring(model->state, -1));
         lua_close(model->state);
         return 1;
     }
@@ -41,19 +42,19 @@ int ir_model_new(ir_model *model) {
 int ir_model_update(ir_model *model, ir_message msg) {
     lua_getglobal(model->state, "ir");
     if(!lua_istable(model->state, -1)) {
-        // TODO: Log an error! ~ahill
+        ir_error("ir_model_update: Failed to get Lua \"ir\" table!");
         lua_pop(model->state, 1);
         return 1;
     }
     lua_getfield(model->state, -1, "update");
     if(!lua_isfunction(model->state, -1)) {
-        // TODO: Log yet another error! ~ahill
+        ir_error("ir_model_update: Failed to get Lua \"ir.update\" function!");
         lua_pop(model->state, 2);
         return 1;
     }
     lua_pushinteger(model->state, msg);
-    if(!lua_pcall(model->state, 1, 0, 0)) {
-        // TODO: Seriously, the next thing I should work on is a logging framework. ~ahill
+    if(lua_pcall(model->state, 1, 0, 0)) {
+        ir_error("ir_model_update: Failed to call Lua \"ir.update\" function: %s", lua_tostring(model->state, -1));
         lua_pop(model->state, 1);
         return 1;
     }

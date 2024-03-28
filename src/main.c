@@ -4,6 +4,7 @@
 
 #include <allegro5/allegro.h>
 
+#include "log.h"
 #include "model.h"
 #include "view.h"
 
