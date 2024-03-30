@@ -8,6 +8,8 @@
 // Workaround for not having #embed yet. ~ahill
 #include "default.lua.h"
 
+// TODO: Figure out how to prevent subscriptions from changing the game's state! ~ahill
+
 void ir_model_drop(ir_model *model) {
     // ...
     lua_close(model->state);
@@ -19,6 +21,13 @@ int ir_model_new(ir_model *model) {
         ir_error("ir_model_new: Failed to initialize Lua");
         return 1;
     }
+    // TODO: Remove dofile, load, and loadfile ~ahill
+    luaopen_base(model->state);
+    luaopen_string(model->state);
+    luaopen_table(model->state);
+    luaopen_math(model->state);
+    luaopen_bit(model->state);
+    // TODO: How would one implement os.time safely? ~ahill
     lua_createtable(model->state, 0, 1);
     lua_pushstring(model->state, "msg");
     lua_createtable(model->state, 0, 2);
