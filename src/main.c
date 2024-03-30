@@ -6,11 +6,26 @@
 
 #include "log.h"
 #include "model.h"
+#include "subscriptions.h"
 #include "view.h"
+
+int ir_run(ir_model *model, ir_subscriptions *subs, ir_view *view) {
+    // These will get used eventually. This is just to prevent the compiler from
+    // complaining about unused variables. ~ahill
+    (void)model;
+    (void)subs;
+    (void)view;
+
+    ir_info("ir_run: Iridium started");
+
+    // ...
+    return 0;
+}
 
 int main(int argc, char *argv[]) {
     ir_model model;
     int status = 1;
+    ir_subscriptions subs;
     ir_view view;
 
     // We'll ignore argc and argv for now, but we might need to parse command
@@ -19,16 +34,24 @@ int main(int argc, char *argv[]) {
     (void)argc;
     (void)argv;
 
-    // Allegro registers an atexit function to clean itself up later. ~ahill
+    // al_init registers an atexit function to clean itself up later. ~ahill
     if(!al_init()) {
+        ir_error("main: Failed to initialize Allegro");
         return 1;
     }
+
     if(!ir_model_new(&model)) {
         if(!ir_view_new(&view)) {
-            // ...
+            if(!ir_subscriptions_new(&subs)) {
+                if(!ir_run(&model, &subs, &view)) {
+                    status = 0;
+                }
+                ir_subscriptions_drop(&subs);
+            }
             ir_view_drop(&view);
         }
         ir_model_drop(&model);
     }
+
     return status;
 }

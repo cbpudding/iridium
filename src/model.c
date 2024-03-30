@@ -16,6 +16,7 @@ void ir_model_drop(ir_model *model) {
 int ir_model_new(ir_model *model) {
     model->state = luaL_newstate();
     if(!model->state) {
+        ir_error("ir_model_new: Failed to initialize Lua");
         return 1;
     }
     lua_createtable(model->state, 0, 1);
@@ -42,13 +43,13 @@ int ir_model_new(ir_model *model) {
 int ir_model_update(ir_model *model, ir_message msg) {
     lua_getglobal(model->state, "ir");
     if(!lua_istable(model->state, -1)) {
-        ir_error("ir_model_update: Failed to get Lua \"ir\" table!");
+        ir_error("ir_model_update: Failed to get Lua \"ir\" table");
         lua_pop(model->state, 1);
         return 1;
     }
     lua_getfield(model->state, -1, "update");
     if(!lua_isfunction(model->state, -1)) {
-        ir_error("ir_model_update: Failed to get Lua \"ir.update\" function!");
+        ir_error("ir_model_update: Failed to get Lua \"ir.update\" function");
         lua_pop(model->state, 2);
         return 1;
     }

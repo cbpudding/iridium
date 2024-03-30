@@ -2,10 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "log.h"
 #include "view.h"
 
 void ir_view_drop(ir_view *view) {
     // ...
+    if(al_is_audio_installed()) {
+        al_uninstall_audio();
+    }
     al_destroy_display(view->display);
 }
 
@@ -18,7 +22,11 @@ int ir_view_new(ir_view *view) {
     al_set_new_window_title("Iridium");
     view->display = al_create_display(1920, 1080);
     if(!view->display) {
+        ir_error("ir_view_new: Failed to create display");
         return 1;
+    }
+    if(!al_install_audio()) {
+        ir_warn("ir_view_new: Failed to initialize the audio subsystem");
     }
     // ...
     return 0;
