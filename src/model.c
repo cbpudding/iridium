@@ -65,8 +65,9 @@ int ir_model_update(ir_model *model, ir_message msg) {
     lua_pushinteger(model->state, msg);
     if(lua_pcall(model->state, 1, 0, 0)) {
         ir_error("ir_model_update: Failed to call Lua \"ir.update\" function: %s", lua_tostring(model->state, -1));
-        lua_pop(model->state, 1);
+        lua_pop(model->state, 2);
         return 1;
     }
+    lua_pop(model->state, 1);
     return 0;
 }
