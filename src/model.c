@@ -28,16 +28,7 @@ int ir_model_new(ir_model *model) {
     luaopen_math(model->state);
     luaopen_bit(model->state);
     // TODO: How would one implement os.time safely? ~ahill
-    lua_createtable(model->state, 0, 1);
-    lua_pushstring(model->state, "msg");
-    lua_createtable(model->state, 0, 2);
-    lua_pushstring(model->state, "NOTHING");
-    lua_pushinteger(model->state, IRMSG_NOTHING);
-    lua_settable(model->state, -3);
-    lua_pushstring(model->state, "CUSTOM");
-    lua_pushinteger(model->state, IRMSG_CUSTOM);
-    lua_settable(model->state, -3);
-    lua_settable(model->state, -3);
+    lua_createtable(model->state, 0, 0);
     lua_setglobal(model->state, "ir");
     luaL_loadbuffer(model->state, (const char *)src_default_lua, src_default_lua_len, "default.lua");
     if(lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
@@ -46,28 +37,5 @@ int ir_model_new(ir_model *model) {
         return 1;
     }
     // ...
-    return 0;
-}
-
-int ir_model_update(ir_model *model, ir_message msg) {
-    lua_getglobal(model->state, "ir");
-    if(!lua_istable(model->state, -1)) {
-        ir_error("ir_model_update: Failed to get Lua \"ir\" table");
-        lua_pop(model->state, 1);
-        return 1;
-    }
-    lua_getfield(model->state, -1, "update");
-    if(!lua_isfunction(model->state, -1)) {
-        ir_error("ir_model_update: Failed to get Lua \"ir.update\" function");
-        lua_pop(model->state, 2);
-        return 1;
-    }
-    lua_pushinteger(model->state, msg);
-    if(lua_pcall(model->state, 1, 0, 0)) {
-        ir_error("ir_model_update: Failed to call Lua \"ir.update\" function: %s", lua_tostring(model->state, -1));
-        lua_pop(model->state, 2);
-        return 1;
-    }
-    lua_pop(model->state, 1);
     return 0;
 }

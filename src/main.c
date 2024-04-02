@@ -6,26 +6,44 @@
 
 #include "log.h"
 #include "model.h"
-#include "subscriptions.h"
 #include "view.h"
 
-int ir_run(ir_model *model, ir_subscriptions *subs, ir_view *view) {
+int ir_run(ir_model *model, ir_view *view) {
     // These will get used eventually. This is just to prevent the compiler from
     // complaining about unused variables. ~ahill
     (void)model;
-    (void)subs;
     (void)view;
 
-    ir_info("ir_run: Iridium started");
+    ir_info("ir_run: Starting Iridium");
 
-    // ...
+    lua_getglobal(model->state, "ir");
+    if(!lua_istable(model->state, -1)) {
+        ir_error("ir_run: Failed to get ir table");
+        lua_pop(model->state, 1);
+        return 1;
+    }
+
+    lua_getfield(model->state, -1, "kernel");
+    if(!lua_isfunction(model->state, -1)) {
+        ir_error("ir_run: Failed to get ir.kernel");
+        lua_pop(model->state, 2);
+        return 1;
+    }
+    
+    if(lua_pcall(model->state, 0, 0, 0)) {
+        ir_error("ir_run: Failed to call ir.kernel: %s", lua_tostring(model->state, -1));
+        lua_pop(model->state, 2);
+        return 1;
+    }
+
+    lua_pop(model->state, 1);
+
     return 0;
 }
 
 int main(int argc, char *argv[]) {
     ir_model model;
     int status = 1;
-    ir_subscriptions subs;
     ir_view view;
 
     // We'll ignore argc and argv for now, but we might need to parse command
@@ -42,11 +60,8 @@ int main(int argc, char *argv[]) {
 
     if(!ir_model_new(&model)) {
         if(!ir_view_new(&view)) {
-            if(!ir_subscriptions_new(&subs)) {
-                if(!ir_run(&model, &subs, &view)) {
-                    status = 0;
-                }
-                ir_subscriptions_drop(&subs);
+            if(!ir_run(&model, &view)) {
+                status = 0;
             }
             ir_view_drop(&view);
         }

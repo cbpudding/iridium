@@ -10,11 +10,11 @@
 #include <luajit-2.1/lualib.h>
 
 typedef enum {
-    // No operation
-    IRMSG_NOTHING,
-    // Starting point for custom message codes. Ignored by the engine.
-    IRMSG_CUSTOM
-} ir_message;
+    // No command
+    IRCMD_NONE,
+    // Halt engine
+    IRCMD_HALT
+} ir_command;
 
 typedef struct {
     lua_State *state;
@@ -22,7 +22,5 @@ typedef struct {
 
 void ir_model_drop(ir_model *model);
 int ir_model_new(ir_model *model);
-
-int ir_model_update(ir_model *model, ir_message msg);
 
 #endif
