@@ -21,6 +21,7 @@ int ir_model_new(ir_model *model) {
         ir_error("ir_model_new: Failed to initialize Lua");
         return 1;
     }
+
     // TODO: Remove dofile, load, and loadfile ~ahill
     luaopen_base(model->state);
     luaopen_string(model->state);
@@ -28,8 +29,24 @@ int ir_model_new(ir_model *model) {
     luaopen_math(model->state);
     luaopen_bit(model->state);
     // TODO: How would one implement os.time safely? ~ahill
-    lua_createtable(model->state, 0, 0);
+
+    lua_createtable(model->state, 0, 1);
+
+    lua_pushstring(model->state, "cmd");
+    lua_createtable(model->state, 0, 2);
+
+    lua_pushstring(model->state, "NONE");
+    lua_pushinteger(model->state, IRCMD_NONE);
+    lua_settable(model->state, -3);
+
+    lua_pushstring(model->state, "HALT");
+    lua_pushinteger(model->state, IRCMD_HALT);
+    lua_settable(model->state, -3);
+
+    lua_settable(model->state, -3);
+
     lua_setglobal(model->state, "ir");
+
     luaL_loadbuffer(model->state, (const char *)src_default_lua, src_default_lua_len, "default.lua");
     if(lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
         ir_error("ir_model_new: Failed to initialize Lua: %s", lua_tostring(model->state, -1));

@@ -17,7 +17,7 @@ function irpriv.kernel()
 end
 
 function ir.init(opts)
-    return 0
+    return ir.cmd.NONE
 end
 
 function ir.view()
@@ -25,7 +25,7 @@ function ir.view()
 end
 
 function ir.update(msg)
-    return 0
+    return ir.cmd.NONE
 end
 
 function ir.subscriptions()
