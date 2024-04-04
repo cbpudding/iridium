@@ -30,7 +30,7 @@ int ir_model_new(ir_model *model) {
     luaopen_bit(model->state);
     // TODO: How would one implement os.time safely? ~ahill
 
-    lua_createtable(model->state, 0, 1);
+    lua_createtable(model->state, 0, 2);
 
     lua_pushstring(model->state, "cmd");
     lua_createtable(model->state, 0, 2);
@@ -41,6 +41,15 @@ int ir_model_new(ir_model *model) {
 
     lua_pushstring(model->state, "HALT");
     lua_pushinteger(model->state, IRCMD_HALT);
+    lua_settable(model->state, -3);
+
+    lua_settable(model->state, -3);
+
+    lua_pushstring(model->state, "msg");
+    lua_createtable(model->state, 0, 1);
+
+    lua_pushstring(model->state, "NOTHING");
+    lua_pushinteger(model->state, 0);
     lua_settable(model->state, -3);
 
     lua_settable(model->state, -3);

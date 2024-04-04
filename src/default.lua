@@ -12,12 +12,39 @@ local irpriv = {}
 
 -- "Take me with you! I'm the one man who knows everything!"
 function irpriv.kernel()
-    ir.init({})
-    -- ...
+    local running = true
+
+    local function command(cmd)
+        local cmds = {
+            [ir.cmd.HALT] = function()
+                running = false
+            end
+        }
+        if cmds[cmd] and type(cmds[cmd]) == "function" then
+            cmds[cmd]()
+        elseif cmd ~= ir.cmd.NONE
+            error("Invalid command received: " .. cmd)
+        end
+    end
+
+    command(ir.init({}))
+
+    while running do
+        -- ...
+    end
 end
 
+setmetatable(ir, {
+    __index = irpriv,
+    __newindex = function(t, k, v)
+        if not irpriv[k] then
+            rawset(t, k, v)
+        end
+    end
+})
+
 function ir.init(opts)
-    return ir.cmd.NONE
+    return ir.cmd.HALT
 end
 
 function ir.view()
@@ -31,12 +58,3 @@ end
 function ir.subscriptions()
     return {}
 end
-
-setmetatable(ir, {
-    __index = irpriv,
-    __newindex = function(t, k, v)
-        if not irpriv[k] then
-            rawset(t, k, v)
-        end
-    end
-})

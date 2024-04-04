@@ -31,7 +31,7 @@ int ir_run(ir_model *model, ir_view *view) {
     }
     
     if(lua_pcall(model->state, 0, 0, 0)) {
-        ir_error("ir_run: Failed to call ir.kernel: %s", lua_tostring(model->state, -1));
+        ir_error("ir_run: Failed to run ir.kernel: %s", lua_tostring(model->state, -1));
         lua_pop(model->state, 2);
         return 1;
     }
