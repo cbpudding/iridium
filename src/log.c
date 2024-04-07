@@ -26,11 +26,33 @@ void ir_log(ir_loglevel level, const char *format, va_list args) {
 #endif
 }
 
+void ir_log_lua(ir_loglevel level, lua_State *L) {
+    int argc = lua_gettop(L);
+    printf("%5s ", LOGLEVEL_PREFIX[level]);
+    for(int i = 1; i <= argc; i++) {
+        if(i > 1) {
+            putc('\t', stdout);
+        }
+        printf("%s", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+#ifdef _WIN32
+    printf("\r\n");
+#else
+    printf("\n");
+#endif
+}
+
 void ir_debug(const char *format, ...) {
     va_list args;
     va_start(args, format);
     ir_log(IRLOG_DEBUG, format, args);
     va_end(args);
+}
+
+int ir_debug_lua(lua_State *L) {
+    ir_log_lua(IRLOG_DEBUG, L);
+    return 0;
 }
 
 void ir_error(const char *format, ...) {
@@ -40,6 +62,11 @@ void ir_error(const char *format, ...) {
     va_end(args);
 }
 
+int ir_error_lua(lua_State *L) {
+    ir_log_lua(IRLOG_ERROR, L);
+    return 0;
+}
+
 void ir_info(const char *format, ...) {
     va_list args;
     va_start(args, format);
@@ -47,9 +74,19 @@ void ir_info(const char *format, ...) {
     va_end(args);
 }
 
+int ir_info_lua(lua_State *L) {
+    ir_log_lua(IRLOG_INFO, L);
+    return 0;
+}
+
 void ir_warn(const char *format, ...) {
     va_list args;
     va_start(args, format);
     ir_log(IRLOG_WARNING, format, args);
     va_end(args);
+}
+
+int ir_warn_lua(lua_State *L) {
+    ir_log_lua(IRLOG_WARNING, L);
+    return 0;
 }

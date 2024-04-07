@@ -5,6 +5,9 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <luajit-2.1/lua.h>
+#include <luajit-2.1/lauxlib.h>
+#include <luajit-2.1/lualib.h>
 #include <stdarg.h>
 
 typedef enum {
@@ -14,11 +17,13 @@ typedef enum {
     IRLOG_WARNING
 } ir_loglevel;
 
-void ir_log(ir_loglevel level, const char *format, va_list args);
-
 void ir_debug(const char *format, ...);
+int ir_debug_lua(lua_State *L);
 void ir_error(const char *format, ...);
+int ir_error_lua(lua_State *L);
 void ir_info(const char *format, ...);
+int ir_info_lua(lua_State *L);
 void ir_warn(const char *format, ...);
+int ir_warn_lua(lua_State *L);
 
 #endif

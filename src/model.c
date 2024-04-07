@@ -22,7 +22,6 @@ int ir_model_new(ir_model *model) {
         return 1;
     }
 
-    // TODO: Remove dofile, load, and loadfile ~ahill
     luaopen_base(model->state);
     luaopen_string(model->state);
     luaopen_table(model->state);
@@ -30,7 +29,23 @@ int ir_model_new(ir_model *model) {
     luaopen_bit(model->state);
     // TODO: How would one implement os.time safely? ~ahill
 
-    lua_createtable(model->state, 0, 2);
+    lua_createtable(model->state, 0, 6);
+
+    lua_pushstring(model->state, "debug");
+    lua_pushcfunction(model->state, ir_debug_lua);
+    lua_settable(model->state, -3);
+
+    lua_pushstring(model->state, "error");
+    lua_pushcfunction(model->state, ir_error_lua);
+    lua_settable(model->state, -3);
+
+    lua_pushstring(model->state, "info");
+    lua_pushcfunction(model->state, ir_info_lua);
+    lua_settable(model->state, -3);
+
+    lua_pushstring(model->state, "warn");
+    lua_pushcfunction(model->state, ir_warn_lua);
+    lua_settable(model->state, -3);
 
     lua_pushstring(model->state, "cmd");
     lua_createtable(model->state, 0, 2);

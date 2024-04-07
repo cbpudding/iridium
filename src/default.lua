@@ -22,10 +22,15 @@ function irpriv.kernel()
         }
         if cmds[cmd] and type(cmds[cmd]) == "function" then
             cmds[cmd]()
-        elseif cmd ~= ir.cmd.NONE
-            error("Invalid command received: " .. cmd)
+        elseif cmd ~= ir.cmd.NONE then
+            ir.error("Invalid command received: " .. cmd)
         end
     end
+
+    -- Remove unsafe functions
+    rawset(_G, "dofile", nil)
+    rawset(_G, "load", nil)
+    rawset(_G, "loadfile", nil)
 
     command(ir.init({}))
 
@@ -44,7 +49,8 @@ setmetatable(ir, {
 })
 
 function ir.init(opts)
-    return ir.cmd.HALT
+    ir.info("Testing from Lua!")
+    return ir.cmd.NONE
 end
 
 function ir.view()
