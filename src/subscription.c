@@ -6,6 +6,7 @@
 #include <allegro5/joystick.h>
 #include <allegro5/keyboard.h>
 #include <allegro5/mouse.h>
+#include <luajit-2.1/lua.h>
 
 #include "log.h"
 #include "main.h"
@@ -68,13 +69,98 @@ int ir_subscription_poll(lua_State *L) {
         lua_pushinteger(L, event.type);
         lua_settable(L, -3);
 
-        // TODO: Do we care about the source? ~ahill
-
         lua_pushstring(L, "timestamp");
         lua_pushnumber(L, event.any.timestamp);
         lua_settable(L, -3);
 
         switch(event.type) {
+            case ALLEGRO_EVENT_KEY_CHAR:
+                lua_pushstring(L, "unichar");
+                lua_pushinteger(L, event.keyboard.unichar);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "modifiers");
+                lua_pushinteger(L, event.keyboard.modifiers);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "repeat");
+                lua_pushboolean(L, event.keyboard.repeat);
+                lua_settable(L, -3);
+                __attribute__((fallthrough));
+            case ALLEGRO_EVENT_KEY_DOWN:
+                __attribute__((fallthrough));
+            case ALLEGRO_EVENT_KEY_UP:
+                lua_pushstring(L, "keycode");
+                lua_pushinteger(L, event.keyboard.keycode);
+                lua_settable(L, -3);
+                break;
+            case ALLEGRO_EVENT_MOUSE_AXES:
+                lua_pushstring(L, "x");
+                lua_pushinteger(L, event.mouse.x);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "y");
+                lua_pushinteger(L, event.mouse.y);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "z");
+                lua_pushinteger(L, event.mouse.z);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "w");
+                lua_pushinteger(L, event.mouse.w);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "dx");
+                lua_pushinteger(L, event.mouse.dx);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "dy");
+                lua_pushinteger(L, event.mouse.dy);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "dz");
+                lua_pushinteger(L, event.mouse.dz);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "dw");
+                lua_pushinteger(L, event.mouse.dw);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "pressure");
+                lua_pushnumber(L, event.mouse.pressure);
+                lua_settable(L, -3);
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                __attribute__((fallthrough));
+            case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+                lua_pushstring(L, "button");
+                lua_pushinteger(L, event.mouse.button);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "pressure");
+                lua_pushnumber(L, event.mouse.pressure);
+                lua_settable(L, -3);
+                __attribute__((fallthrough));
+            case ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY:
+                __attribute__((fallthrough));
+            case ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY:
+                lua_pushstring(L, "x");
+                lua_pushinteger(L, event.mouse.x);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "y");
+                lua_pushinteger(L, event.mouse.y);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "z");
+                lua_pushinteger(L, event.mouse.z);
+                lua_settable(L, -3);
+
+                lua_pushstring(L, "w");
+                lua_pushinteger(L, event.mouse.w);
+                lua_settable(L, -3);
+                break;
             default:
                 ir_warn("ir_subscription_poll: Unhandled event: %u", event.type);
                 break;

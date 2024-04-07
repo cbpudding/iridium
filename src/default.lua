@@ -54,11 +54,17 @@ function irpriv.kernel()
     ir.info("ir.kernel: Stopping kernel")
 end
 
-function irpriv.register(type, handler)
-    if not ir.subscriptions[type] then
-        ir.subscriptions[type] = {}
+function irpriv.register(handler)
+    if type(handler) ~= "table" or #handler ~= 2 or type(handler[1]) ~= "number" or type(handler[2]) ~= "function" then
+        ir.error("ir.register: Invalid subscription registration")
+    else
+        if not ir.subscriptions[handler[1]] then
+            ir.subscriptions[handler[1]] = {}
+        end
+        table.insert(ir.subscriptions[handler[1]], handler[2])
+        return true
     end
-    table.insert(ir.subscriptions[type], handler)
+    return false
 end
 
 setmetatable(ir, {
@@ -75,9 +81,11 @@ setmetatable(ir, {
 ir.subscriptions = {}
 
 function ir.init(opts)
-    ir.register(ir.internal.EVENT_KEY_DOWN, function(event)
-        return 1
-    end)
+    ir.register({ir.internal.EVENT_KEY_DOWN, function(event)
+        if event.keycode == 59 then
+            return 1
+        end
+    end})
 
     return ir.cmd.NONE
 end
