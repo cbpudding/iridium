@@ -32,11 +32,33 @@ function irpriv.kernel()
     rawset(_G, "load", nil)
     rawset(_G, "loadfile", nil)
 
+    ir.info("ir.kernel: Kernel started")
+
     command(ir.init({}))
 
     while running do
-        -- ...
+        event = ir.poll()
+        if event and ir.subscriptions[event.type] then
+            for _, handler in ipairs(ir.subscriptions[event.type]) do
+                local msg = handler(event)
+                if msg ~= ir.msg.NOTHING then
+                    command(ir.update(msg))
+                    if not running then
+                        break
+                    end
+                end
+            end
+        end
     end
+
+    ir.info("ir.kernel: Stopping kernel")
+end
+
+function irpriv.register(type, handler)
+    if not ir.subscriptions[type] then
+        ir.subscriptions[type] = {}
+    end
+    table.insert(ir.subscriptions[type], handler)
 end
 
 setmetatable(ir, {
@@ -48,8 +70,15 @@ setmetatable(ir, {
     end
 })
 
+-- Application defaults
+
+ir.subscriptions = {}
+
 function ir.init(opts)
-    ir.info("Testing from Lua!")
+    ir.register(ir.internal.EVENT_KEY_DOWN, function(event)
+        return 1
+    end)
+
     return ir.cmd.NONE
 end
 
@@ -58,9 +87,8 @@ function ir.view()
 end
 
 function ir.update(msg)
+    if msg == 1 then
+        return ir.cmd.HALT
+    end
     return ir.cmd.NONE
-end
-
-function ir.subscriptions()
-    return {}
 end

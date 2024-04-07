@@ -5,16 +5,18 @@
 #include <allegro5/allegro.h>
 
 #include "log.h"
+#include "main.h"
 #include "model.h"
+#include "subscription.h"
 #include "view.h"
 
-int ir_run(ir_model *model, ir_view *view) {
+ir_engine ENGINE;
+
+int ir_run(ir_model *model, ir_subscription *subs, ir_view *view) {
     // These will get used eventually. This is just to prevent the compiler from
     // complaining about unused variables. ~ahill
-    (void)model;
+    (void)subs;
     (void)view;
-
-    ir_info("ir_run: Starting Iridium");
 
     lua_getglobal(model->state, "ir");
     if(!lua_istable(model->state, -1)) {
@@ -42,9 +44,7 @@ int ir_run(ir_model *model, ir_view *view) {
 }
 
 int main(int argc, char *argv[]) {
-    ir_model model;
     int status = 1;
-    ir_view view;
 
     // We'll ignore argc and argv for now, but we might need to parse command
     // line arguments later. The following is simply to get the compiler to
@@ -58,14 +58,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if(!ir_model_new(&model)) {
-        if(!ir_view_new(&view)) {
-            if(!ir_run(&model, &view)) {
-                status = 0;
+    if(!ir_model_new(&ENGINE.model)) {
+        if(!ir_subscription_new(&ENGINE.subs)) {
+            if(!ir_view_new(&ENGINE.view)) {
+                if(!ir_run(&ENGINE.model, &ENGINE.subs, &ENGINE.view)) {
+                    status = 0;
+                }
+                ir_view_drop(&ENGINE.view);
             }
-            ir_view_drop(&view);
+            ir_subscription_drop(&ENGINE.subs);
         }
-        ir_model_drop(&model);
+        ir_model_drop(&ENGINE.model);
     }
 
     return status;
