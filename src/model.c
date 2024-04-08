@@ -11,6 +11,7 @@
 
 // Workaround for not having #embed yet. ~ahill
 #include "default.lua.h"
+#include "kernel.lua.h"
 #include "listeners.lua.h"
 
 // TODO: Figure out how to prevent subscriptions from changing the game's state! ~ahill
@@ -80,7 +81,7 @@ int ir_model_new(ir_model *model) {
 
     lua_setglobal(model->state, "ir");
 
-    luaL_loadbuffer(model->state, (const char *)src_default_lua, src_default_lua_len, "default.lua");
+    luaL_loadbuffer(model->state, (const char *)src_kernel_lua, src_kernel_lua_len, "kernel.lua");
     if(lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
         ir_error("ir_model_new: Failed to initialize Lua: %s", lua_tostring(model->state, -1));
         lua_close(model->state);
@@ -90,6 +91,13 @@ int ir_model_new(ir_model *model) {
     luaL_loadbuffer(model->state, (const char *)src_listeners_lua, src_listeners_lua_len, "listeners.lua");
     if(lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
         ir_error("ir_model_new: Failed to initialize listeners: %s", lua_tostring(model->state, -1));
+        lua_close(model->state);
+        return 1;
+    }
+
+    luaL_loadbuffer(model->state, (const char *)src_default_lua, src_default_lua_len, "default.lua");
+    if(lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
+        ir_error("ir_model_new: Failed to initialize Lua: %s", lua_tostring(model->state, -1));
         lua_close(model->state);
         return 1;
     }
