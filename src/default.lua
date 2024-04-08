@@ -67,6 +67,22 @@ function irpriv.register(handler)
     return false
 end
 
+irpriv.listener = {}
+
+function irpriv.listener.keydown(pattern, msg)
+    return {
+        ir.internal.EVENT_KEY_DOWN,
+        function(event)
+            for k, v in pairs(pattern) do
+                if event[k] ~= v then
+                    return ir.msg.NOTHING
+                end
+            end
+            return msg
+        end
+    }
+end
+
 setmetatable(ir, {
     __index = irpriv,
     __newindex = function(t, k, v)
@@ -81,11 +97,7 @@ setmetatable(ir, {
 ir.subscriptions = {}
 
 function ir.init(opts)
-    ir.register({ir.internal.EVENT_KEY_DOWN, function(event)
-        if event.keycode == 59 then
-            return 1
-        end
-    end})
+    ir.register(ir.listener.keydown({keycode = 59}, 1))
 
     return ir.cmd.NONE
 end
