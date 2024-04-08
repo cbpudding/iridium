@@ -35,11 +35,7 @@ int ir_model_new(ir_model *model) {
     luaopen_bit(model->state);
     // TODO: How would one implement os.time safely? ~ahill
 
-    lua_createtable(model->state, 0, 8);
-
-    lua_pushstring(model->state, "poll");
-    lua_pushcfunction(model->state, ir_subscription_poll);
-    lua_settable(model->state, -3);
+    lua_createtable(model->state, 0, 7);
 
     lua_pushstring(model->state, "debug");
     lua_pushcfunction(model->state, ir_debug_lua);
@@ -95,9 +91,14 @@ int ir_model_new(ir_model *model) {
     return 0;
 }
 
+// Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
     lua_pushstring(model->state, "internal");
-    lua_createtable(model->state, 0, 31);
+    lua_createtable(model->state, 0, 32);
+
+    lua_pushstring(model->state, "poll");
+    lua_pushcfunction(model->state, ir_subscription_poll);
+    lua_settable(model->state, -3);
 
     lua_pushstring(model->state, "EVENT_JOYSTICK_AXIS");
     lua_pushinteger(model->state, ALLEGRO_EVENT_JOYSTICK_AXIS);

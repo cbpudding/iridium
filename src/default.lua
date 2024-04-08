@@ -2,16 +2,10 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
--- { init : opts -> Cmd
--- , view : () -> Stage
--- , update : msg -> Cmd
--- , subscriptions : () -> List (Sub msg)
--- }
-
 local irpriv = {}
 
 -- "Take me with you! I'm the one man who knows everything!"
-function irpriv.kernel()
+function irpriv.kernel(opts)
     local running = true
 
     local function command(cmd)
@@ -32,12 +26,15 @@ function irpriv.kernel()
     rawset(_G, "load", nil)
     rawset(_G, "loadfile", nil)
 
+    -- Proxy I/O functions
+    rawset(_G, "print", ir.info)
+
     ir.info("ir.kernel: Kernel started")
 
-    command(ir.init({}))
+    command(ir.init(opts))
 
     while running do
-        event = ir.poll()
+        event = ir.internal.poll()
         if event and ir.subscriptions[event.type] then
             for _, handler in ipairs(ir.subscriptions[event.type]) do
                 local msg = handler(event)
