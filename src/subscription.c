@@ -60,7 +60,7 @@ int ir_subscription_new(ir_subscription *subs) {
     return 0;
 }
 
-int ir_subscription_poll(lua_State *L) {
+int ir_subscription_poll_lua(lua_State *L) {
     ALLEGRO_EVENT event;
     if(al_get_next_event(ENGINE.subs.queue, &event)) {
         lua_createtable(L, 0, 2);
@@ -162,7 +162,7 @@ int ir_subscription_poll(lua_State *L) {
                 lua_settable(L, -3);
                 break;
             default:
-                ir_warn("ir_subscription_poll: Unhandled event: %u", event.type);
+                ir_warn("ir_subscription_poll_lua: Unhandled event: %u", event.type);
                 break;
         }
         return 1;

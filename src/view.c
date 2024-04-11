@@ -7,6 +7,7 @@
 
 void ir_view_drop(ir_view *view) {
     // ...
+    glDeleteBuffers(1, &view->vbo);
     if(al_is_audio_installed()) {
         al_uninstall_audio();
     }
@@ -28,6 +29,27 @@ int ir_view_new(ir_view *view) {
     if(!al_install_audio()) {
         ir_warn("ir_view_new: Failed to initialize the audio subsystem");
     }
+    glGenBuffers(1, &view->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, view->vbo);
     // ...
+    return 0;
+}
+
+int ir_view_clear_lua(lua_State *L) {
+    // We don't actually use the Lua state in this case, it's just here to match
+    // the function signature for Lua. ~ahill
+    (void)L;
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    return 0;
+}
+
+int ir_view_present_lua(lua_State *L) {
+    // We don't actually use the Lua state in this case, it's just here to match
+    // the function signature for Lua. ~ahill
+    (void)L;
+
+    al_flip_display();
     return 0;
 }

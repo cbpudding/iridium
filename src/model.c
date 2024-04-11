@@ -8,6 +8,7 @@
 #include "log.h"
 #include "model.h"
 #include "subscription.h"
+#include "view.h"
 
 // Workaround for not having #embed yet. ~ahill
 #include "default.lua.h"
@@ -110,11 +111,23 @@ int ir_model_new(ir_model *model) {
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
     lua_pushstring(model->state, "internal");
-    lua_createtable(model->state, 0, 32);
+    lua_createtable(model->state, 0, 34);
+
+    // Internal Functions
+
+    lua_pushstring(model->state, "clear");
+    lua_pushcfunction(model->state, ir_view_clear_lua);
+    lua_settable(model->state, -3);
 
     lua_pushstring(model->state, "poll");
-    lua_pushcfunction(model->state, ir_subscription_poll);
+    lua_pushcfunction(model->state, ir_subscription_poll_lua);
     lua_settable(model->state, -3);
+
+    lua_pushstring(model->state, "present");
+    lua_pushcfunction(model->state, ir_view_present_lua);
+    lua_settable(model->state, -3);
+
+    // Internal Constants
 
     lua_pushstring(model->state, "EVENT_JOYSTICK_AXIS");
     lua_pushinteger(model->state, ALLEGRO_EVENT_JOYSTICK_AXIS);

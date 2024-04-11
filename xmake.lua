@@ -20,11 +20,17 @@ target("iridium")
     set_languages("clatest")
     set_warnings("everything")
     add_packages("allegro", "luajit")
+    if is_plat("windows") or is_plat("mingw") then
+        add_syslinks("opengl32")
+    elseif is_plat("linux") then
+        add_syslinks("GL")
+    end
     add_rules("xxd")
     if is_mode("debug") then
         add_includedirs("$(buildir)/.deps/iridium/linux/x86_64/debug")
     else
         add_includedirs("$(buildir)/.deps/iridium/linux/x86_64/release")
     end
+    add_files("src/**.glsl", {rule = "xxd"})
     add_files("src/**.lua", {rule = "xxd"})
     add_files("src/**.c")

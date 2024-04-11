@@ -5,14 +5,22 @@
 #ifndef VIEW_H
 #define VIEW_H
 
+#define GL_GLEXT_PROTOTYPES
+
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_opengl.h>
+#include <GL/glext.h>
 
 typedef struct {
     ALLEGRO_DISPLAY *display;
+    GLuint vbo;
 } ir_view;
 
 void ir_view_drop(ir_view *view);
 int ir_view_new(ir_view *view);
+
+int ir_view_clear_lua(lua_State *L);
+int ir_view_present_lua(lua_State *L);
 
 #endif
