@@ -5,8 +5,13 @@
 #include "log.h"
 #include "view.h"
 
+// When will #embed be a thing? ~ahill
+#include "default.frag.glsl.h"
+#include "default.vert.glsl.h"
+
 void ir_view_drop(ir_view *view) {
     // ...
+    ir_shader_drop(&view->shader);
     glDeleteBuffers(1, &view->vbo);
     if(al_is_audio_installed()) {
         al_uninstall_audio();
@@ -31,6 +36,15 @@ int ir_view_new(ir_view *view) {
     }
     glGenBuffers(1, &view->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, view->vbo);
+    if(ir_shader_new(&view->shader, src_default_vert_glsl_len, (char *)src_default_vert_glsl, src_default_frag_glsl_len, (char *)src_default_frag_glsl)) {
+        ir_error("ir_view_new: Failed to compile default shader");
+        glDeleteBuffers(1, &view->vbo);
+        if(al_is_audio_installed()) {
+            al_uninstall_audio();
+        }
+        al_destroy_display(view->display);
+        return 1;
+    }
     // ...
     return 0;
 }

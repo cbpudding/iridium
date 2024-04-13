@@ -12,8 +12,11 @@
 #include <allegro5/allegro_opengl.h>
 #include <GL/glext.h>
 
+#include "shader.h"
+
 typedef struct {
     ALLEGRO_DISPLAY *display;
+    ir_shader shader;
     GLuint vbo;
 } ir_view;
 
