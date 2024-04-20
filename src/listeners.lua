@@ -44,7 +44,7 @@ end
 
 ir.listener.keychar = ir.listener.generic(ir.internal.EVENT_KEY_CHAR)
 ir.listener.keydown = ir.listener.generic(ir.internal.EVENT_KEY_DOWN)
-ir.listener.keyup = ir.listener.generic(ir.interval.EVENT_KEY_UP)
+ir.listener.keyup = ir.listener.generic(ir.internal.EVENT_KEY_UP)
 ir.listener.mouseaxes = ir.listener.generic(ir.internal.EVENT_MOUSE_AXES)
 ir.listener.mousedown = ir.listener.generic(ir.internal.EVENT_MOUSE_DOWN)
 ir.listener.mouseenter = ir.listener.generic(ir.internal.EVENT_MOUSE_ENTER_DISPLAY)

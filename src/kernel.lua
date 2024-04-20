@@ -6,6 +6,13 @@ local irpriv = {}
 
 -- "Take me with you! I'm the one man who knows everything!"
 function irpriv.kernel(opts)
+    local epoch = ir.time()
+    -- 60Hz is a good guess, but isn't accurate for every system (including my
+    -- own). Allegro doesn't have the ability to retrieve the refresh rate in a
+    -- cross-platform manner so this will have to do for now. ~ahill
+    local framerate = 1/60
+    local frames = 0
+    local frametime = framerate / 2
     local running = true
 
     local function command(cmd)
@@ -19,6 +26,10 @@ function irpriv.kernel(opts)
         elseif cmd ~= ir.cmd.NONE then
             ir.error("Invalid command received: " .. cmd)
         end
+    end
+
+    local function time()
+        return ir.time() - epoch
     end
 
     -- Remove unsafe functions
@@ -45,6 +56,12 @@ function irpriv.kernel(opts)
                     end
                 end
             end
+        end
+        if time() / framerate > frames then
+            ir.internal.clear()
+            -- ir.view()
+            ir.internal.present()
+            frames = frames + 1
         end
     end
 
