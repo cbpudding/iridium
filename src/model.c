@@ -37,7 +37,6 @@ int ir_model_new(ir_model *model) {
     luaopen_table(model->state);
     luaopen_math(model->state);
     luaopen_bit(model->state);
-    // TODO: How would one implement os.time safely? ~ahill
 
     lua_createtable(model->state, 0, 8);
 

@@ -30,6 +30,9 @@ function irpriv.kernel(opts)
     end
 
     local function time()
+        -- We have an epoch in the kernel that is subtracted from the engine's
+        -- time so we don't get stuck rendering frames at the very beginning.
+        -- ~ahill
         return ir.time() - epoch
     end
 
