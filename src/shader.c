@@ -8,7 +8,6 @@
 // TODO: Should I switch over to using Allegro's shader functions at some point? ~ahill
 
 void ir_shader_drop(ir_shader *shader) {
-    // ...
     glDetachShader(shader->program, shader->fragment);
     glDetachShader(shader->program, shader->vertex);
     glDeleteProgram(shader->program);
@@ -24,7 +23,7 @@ int ir_shader_new(ir_shader *shader, size_t vert_len, char *vert_src, size_t fra
     buffer[0] = 0;
 
     shader->vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(shader->vertex, 1, &vert_src, &vert_len);
+    glShaderSource(shader->vertex, 1, (const GLchar **)&vert_src, (const int *)&vert_len);
     glCompileShader(shader->vertex);
     glGetShaderiv(shader->vertex, GL_COMPILE_STATUS, &status);
     if(status != GL_TRUE) {
@@ -35,7 +34,7 @@ int ir_shader_new(ir_shader *shader, size_t vert_len, char *vert_src, size_t fra
     }
 
     shader->fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(shader->fragment, 1, &frag_src, &frag_len);
+    glShaderSource(shader->fragment, 1, (const GLchar **)&frag_src, (const int *)&frag_len);
     glCompileShader(shader->fragment);
     glGetShaderiv(shader->fragment, GL_COMPILE_STATUS, &status);
     if(status != GL_TRUE) {

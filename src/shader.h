@@ -5,6 +5,8 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#define GL_GLEXT_PROTOTYPES
+
 #include <allegro5/allegro_opengl.h>
 #include <GL/glext.h>
 
