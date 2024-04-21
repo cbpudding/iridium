@@ -10,8 +10,9 @@ function irpriv.kernel(opts)
     -- 60Hz is a good guess, but isn't accurate for every system (including my
     -- own). Allegro doesn't have the ability to retrieve the refresh rate in a
     -- cross-platform manner so this will have to do for now. ~ahill
-    local framerate = 1 / (opts.framerate or 60)
+    local framerate = 1 / (tonumber(opts.framerate) or 60)
     local frames = 0
+    local game = opts.game or "game.zip"
     local running = true
 
     ir.info("ir.kernel: Framerate set to " .. tostring(1 / framerate) .. "Hz")
@@ -46,7 +47,26 @@ function irpriv.kernel(opts)
 
     ir.info("ir.kernel: Kernel started")
 
-    command(ir.init(opts))
+    if not ir.internal.physfs.mount(game) then
+        ir.error("ir.kernel: Failed to load game archive \"" .. game .. "\"")
+        running = false
+    end
+
+    if running then
+        local main = ir.internal.physfs.fetch("main.lua")
+        if main then
+            local status, err = pcall(loadstring(main))
+            if status then
+                command(ir.init(opts))
+            else
+                ir.error("ir.kernel: Failed to execute \"main.lua\": " .. tostring(err))
+                running = false
+            end
+        else
+            ir.error("ir.kernel: Failed to load \"main.lua\"")
+            running = false
+        end
+    end
 
     while running do
         event = ir.internal.poll()
@@ -70,6 +90,8 @@ function irpriv.kernel(opts)
     end
 
     ir.info("ir.kernel: Stopping kernel")
+
+    ir.internal.physfs.umount(game)
 end
 
 setmetatable(ir, {
@@ -80,3 +102,7 @@ setmetatable(ir, {
         end
     end
 })
+
+ir.res = {}
+
+-- ...

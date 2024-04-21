@@ -3,7 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_physfs.h>
 #include <luajit-2.1/lua.h>
+#include <physfs.h>
 
 #include "log.h"
 #include "main.h"
@@ -133,17 +135,23 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if(!ir_model_new(&ENGINE.model)) {
-        if(!ir_subscription_new(&ENGINE.subs)) {
-            if(!ir_view_new(&ENGINE.view)) {
-                if(!ir_run(argc, argv, &ENGINE)) {
-                    status = 0;
+    if(PHYSFS_init(argv[0])) {
+        al_set_physfs_file_interface();
+        if(!ir_model_new(&ENGINE.model)) {
+            if(!ir_subscription_new(&ENGINE.subs)) {
+                if(!ir_view_new(&ENGINE.view)) {
+                    if(!ir_run(argc, argv, &ENGINE)) {
+                        status = 0;
+                    }
+                    ir_view_drop(&ENGINE.view);
                 }
-                ir_view_drop(&ENGINE.view);
+                ir_subscription_drop(&ENGINE.subs);
             }
-            ir_subscription_drop(&ENGINE.subs);
+            ir_model_drop(&ENGINE.model);
         }
-        ir_model_drop(&ENGINE.model);
+        PHYSFS_deinit();
+    } else {
+        ir_error("main: Failed to initialize PhysicsFS");
     }
 
     return status;

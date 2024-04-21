@@ -4,6 +4,7 @@
 
 #include <allegro5/events.h>
 #include <luajit-2.1/lua.h>
+#include <physfs.h>
 
 #include "log.h"
 #include "model.h"
@@ -117,16 +118,20 @@ int ir_model_time_lua(lua_State *L) {
     return 1;
 }
 
+void ir_model_new_internal_physfs(lua_State *L);
+
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
     lua_pushstring(model->state, "internal");
-    lua_createtable(model->state, 0, 34);
+    lua_createtable(model->state, 0, 35);
 
     // Internal Functions
 
     lua_pushstring(model->state, "clear");
     lua_pushcfunction(model->state, ir_view_clear_lua);
     lua_settable(model->state, -3);
+
+    ir_model_new_internal_physfs(model->state);
 
     lua_pushstring(model->state, "poll");
     lua_pushcfunction(model->state, ir_subscription_poll_lua);
@@ -263,4 +268,83 @@ void ir_model_new_internal(ir_model *model) {
     lua_settable(model->state, -3);
 
     lua_settable(model->state, -3);
+}
+
+int ir_model_physfs_fetch_lua(lua_State *L) {
+    uint8_t *buffer;
+    PHYSFS_File *file;
+    PHYSFS_sint64 length;
+    const char *name;
+    if(lua_isstring(L, -1)) {
+        name = lua_tostring(L, -1);
+        if(PHYSFS_exists(name)) {
+            if((file = PHYSFS_openRead(name))) {
+                length = PHYSFS_fileLength(file);
+                if((buffer = malloc(length + 1))) {
+                    if(PHYSFS_readBytes(file, buffer, length) == length) {
+                        lua_pop(L, -1);
+                        // Null terminator because PhysicsFS doesn't care about text data! ~ahill
+                        *(buffer + length) = 0;
+                        lua_pushstring(L, buffer);
+                        // Will this cause issues? ~ahill
+                        free(buffer);
+                        PHYSFS_close(file);
+                        return 1;
+                    } else {
+                        ir_error("ir_model_physfs_fetch_lua: Failed to read file \"%s\": %s", name, PHYSFS_getLastError());
+                    }
+                    free(buffer);
+                } else {
+                    ir_error("ir_model_physfs_fetch_lua: Failed to allocate buffer for \"%s\"", name);
+                }
+                PHYSFS_close(file);
+            } else {
+                ir_error("ir_model_physfs_fetch_lua: Failed to open \"%s\": %s", name, PHYSFS_getLastError());
+            }
+        } else {
+            ir_error("ir_model_physfs_fetch_lua: \"%s\" does not exist", name);
+        }
+    }
+    lua_pop(L, -1);
+    lua_pushnil(L);
+    return 1;
+}
+
+int ir_model_physfs_mount_lua(lua_State *L) {
+    bool status = false;
+    if(lua_isstring(L, -1)) {
+        if(PHYSFS_mount(lua_tostring(L, -1), NULL, true)) {
+            status = true;
+        }
+    }
+    lua_pop(L, -1);
+    lua_pushboolean(L, status);
+    return 1;
+}
+
+int ir_model_physfs_umount_lua(lua_State *L) {
+    if(lua_isstring(L, -1)) {
+        PHYSFS_unmount(lua_tostring(L, -1));
+    }
+    lua_pop(L, -1);
+    return 0;
+}
+
+void ir_model_new_internal_physfs(lua_State *L) {
+    lua_pushstring(L, "physfs");
+    lua_createtable(L, 0, 3);
+
+    lua_pushstring(L, "fetch");
+    lua_pushcfunction(L, ir_model_physfs_fetch_lua);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "mount");
+    lua_pushcfunction(L, ir_model_physfs_mount_lua);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "umount");
+    lua_pushcfunction(L, ir_model_physfs_umount_lua);
+    lua_settable(L, -3);
+
+    lua_settable(L, -3);
 }
