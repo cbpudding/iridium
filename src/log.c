@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <allegro5/allegro.h>
 #include <stdio.h>
 
 #include "log.h"
@@ -16,7 +17,7 @@ const char *LOGLEVEL_PREFIX[4] = {
 // Internal logging function. Should not be used outside of the other logging
 // functions for the developer's remaining sanity. ~ahill
 void ir_log(ir_loglevel level, const char *format, va_list args) {
-    printf("%5s ", LOGLEVEL_PREFIX[level]);
+    printf("%010.4f %5s ", al_get_time(), LOGLEVEL_PREFIX[level]);
     vprintf(format, args);
 // Differing newlines for DOS-based systems. ~ahill
 #ifdef _WIN32
@@ -28,7 +29,7 @@ void ir_log(ir_loglevel level, const char *format, va_list args) {
 
 void ir_log_lua(ir_loglevel level, lua_State *L) {
     int argc = lua_gettop(L);
-    printf("%5s ", LOGLEVEL_PREFIX[level]);
+    printf("%010.4f %5s ", al_get_time(), LOGLEVEL_PREFIX[level]);
     for(int i = 1; i <= argc; i++) {
         if(i > 1) {
             putc('\t', stdout);
