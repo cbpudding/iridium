@@ -12,7 +12,6 @@ function irpriv.kernel(opts)
     -- cross-platform manner so this will have to do for now. ~ahill
     local framerate = 1 / (opts.framerate or 60)
     local frames = 0
-    local frametime = framerate / 2
     local running = true
 
     ir.info("ir.kernel: Framerate set to " .. tostring(1 / framerate) .. "Hz")
@@ -49,8 +48,8 @@ function irpriv.kernel(opts)
     while running do
         event = ir.internal.poll()
         if event and ir.subscriptions[event.type] then
-            for _, handler in ipairs(ir.subscriptions[event.type]) do
-                local msg = handler(event)
+            for _, listener in ipairs(ir.subscriptions[event.type]) do
+                local msg = listener(event)
                 if msg ~= ir.msg.NOTHING then
                     command(ir.update(msg))
                     if not running then

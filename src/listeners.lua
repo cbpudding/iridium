@@ -4,18 +4,19 @@
 
 -- Utility Functions
 
--- TODO: Replace ir.register with something a bit more declarative ~ahill
-function ir.register(handler)
-    if type(handler) ~= "table" or #handler ~= 2 or type(handler[1]) ~= "number" or type(handler[2]) ~= "function" then
-        ir.error("ir.register: Invalid subscription registration")
-    else
-        if not ir.subscriptions[handler[1]] then
-            ir.subscriptions[handler[1]] = {}
+function ir.register(listeners)
+    local subs = {}
+    for i, listener in ipairs(listeners) do
+        if type(listener) ~= "table" or #listener ~= 2 or type(listener[2]) ~= "function" then
+            ir.error("ir.register: Invalid subscription registration at " .. i)
+        else
+            if not subs[listener[1]] then
+                subs[listener[1]] = {}
+            end
+            table.insert(subs[listener[1]], listener[2])
         end
-        table.insert(ir.subscriptions[handler[1]], handler[2])
-        return true
     end
-    return false
+    return subs
 end
 
 -- Event Listeners
