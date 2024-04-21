@@ -10,7 +10,18 @@ function irpriv.kernel(opts)
     -- 60Hz is a good guess, but isn't accurate for every system (including my
     -- own). Allegro doesn't have the ability to retrieve the refresh rate in a
     -- cross-platform manner so this will have to do for now. ~ahill
-    local framerate = 1/60
+    local framerate = (function(framerate)
+        if type(framerate) == "string" then
+            local desired = tonumber(framerate)
+            if desired then
+                ir.info("ir.kernel: Framerate manually set to " .. desired .. "Hz")
+                return 1 / desired
+            else
+                ir.warn("ir.kernel: Failed to parse desired framerate \"" .. tostring(framerate) .. "\"")
+            end
+        end
+        return 1/60
+    end)(opts.framerate)
     local frames = 0
     local frametime = framerate / 2
     local running = true

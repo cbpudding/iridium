@@ -38,7 +38,6 @@ int ir_run_opts(int argc, char *argv[], lua_State *L) {
         }
 
         for(int i = 0; i < len; i++) {
-            ir_debug("ir_run_opts: %c %d", args[i], stage);
             switch(stage) {
                 case 0:
                     if(args[i] == '+') {

@@ -23,6 +23,7 @@ void ir_model_drop(ir_model *model) {
 }
 
 void ir_model_new_internal(ir_model *model);
+int ir_model_time_lua(lua_State *L);
 
 int ir_model_new(ir_model *model) {
     model->state = luaL_newstate();
