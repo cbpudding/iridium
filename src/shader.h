@@ -11,12 +11,18 @@
 #include <GL/glext.h>
 
 typedef struct {
-    GLuint fragment;
-    GLuint program;
-    GLuint vertex;
+	GLuint fragment;
+	GLuint program;
+	GLuint vertex;
 } ir_shader;
 
 void ir_shader_drop(ir_shader *shader);
-int ir_shader_new(ir_shader *shader, size_t vert_len, char *vert_src, size_t frag_len, char *frag_src);
+int ir_shader_new(
+	ir_shader *shader,
+	size_t vert_len,
+	char *vert_src,
+	size_t frag_len,
+	char *frag_src
+);
 
 #endif

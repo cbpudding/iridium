@@ -10,14 +10,14 @@
 #include <luajit-2.1/lualib.h>
 
 typedef enum {
-    // No command
-    IRCMD_NONE,
-    // Halt engine
-    IRCMD_HALT
+	// No command
+	IRCMD_NONE,
+	// Halt engine
+	IRCMD_HALT
 } ir_command;
 
 typedef struct {
-    lua_State *state;
+	lua_State *state;
 } ir_model;
 
 void ir_model_drop(ir_model *model);

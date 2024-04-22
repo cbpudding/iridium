@@ -9,7 +9,7 @@
 #include <luajit-2.1/lua.h>
 
 typedef struct {
-    ALLEGRO_EVENT_QUEUE *queue;
+	ALLEGRO_EVENT_QUEUE *queue;
 } ir_subscription;
 
 void ir_subscription_drop(ir_subscription *subs);

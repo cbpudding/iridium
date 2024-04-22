@@ -15,9 +15,9 @@
 #include "shader.h"
 
 typedef struct {
-    ALLEGRO_DISPLAY *display;
-    ir_shader shader;
-    GLuint vbo;
+	ALLEGRO_DISPLAY *display;
+	ir_shader shader;
+	GLuint vbo;
 } ir_view;
 
 void ir_view_drop(ir_view *view);

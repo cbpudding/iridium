@@ -10,9 +10,9 @@
 #include "view.h"
 
 typedef struct {
-    ir_model model;
-    ir_subscription subs;
-    ir_view view;
+	ir_model model;
+	ir_subscription subs;
+	ir_view view;
 } ir_engine;
 
 extern ir_engine ENGINE;

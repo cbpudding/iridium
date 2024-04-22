@@ -11,10 +11,10 @@
 #include <stdarg.h>
 
 typedef enum {
-    IRLOG_DEBUG = 0,
-    IRLOG_ERROR,
-    IRLOG_INFO,
-    IRLOG_WARNING
+	IRLOG_DEBUG = 0,
+	IRLOG_ERROR,
+	IRLOG_INFO,
+	IRLOG_WARNING
 } ir_loglevel;
 
 void ir_debug(const char *format, ...);
