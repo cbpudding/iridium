@@ -10,25 +10,6 @@
 #include "log.h"
 #include "resources.h"
 
-void ir_resources_init(lua_State *L) {
-	lua_pushstring(L, "physfs");
-	lua_createtable(L, 0, 3);
-
-	lua_pushstring(L, "fetch");
-	lua_pushcfunction(L, ir_resources_fetch_lua);
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "mount");
-	lua_pushcfunction(L, ir_resources_mount_lua);
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "umount");
-	lua_pushcfunction(L, ir_resources_umount_lua);
-	lua_settable(L, -3);
-
-	lua_settable(L, -3);
-}
-
 int ir_resources_fetch_lua(lua_State *L) {
 	uint8_t *buffer;
 	PHYSFS_File *file;

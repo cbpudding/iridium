@@ -147,7 +147,7 @@ int ir_model_time_lua(lua_State *L) {
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
 	lua_pushstring(model->state, "internal");
-	lua_createtable(model->state, 0, 35);
+	lua_createtable(model->state, 0, 37);
 
 	// Internal Functions
 
@@ -155,7 +155,13 @@ void ir_model_new_internal(ir_model *model) {
 	lua_pushcfunction(model->state, ir_view_clear_lua);
 	lua_settable(model->state, -3);
 
-	ir_resources_init(model->state);
+	lua_pushstring(model->state, "fetch");
+	lua_pushcfunction(model->state, ir_resources_fetch_lua);
+	lua_settable(model->state, -3);
+
+	lua_pushstring(model->state, "mount");
+	lua_pushcfunction(model->state, ir_resources_mount_lua);
+	lua_settable(model->state, -3);
 
 	lua_pushstring(model->state, "poll");
 	lua_pushcfunction(model->state, ir_subscription_poll_lua);
@@ -163,6 +169,10 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushstring(model->state, "present");
 	lua_pushcfunction(model->state, ir_view_present_lua);
+	lua_settable(model->state, -3);
+
+	lua_pushstring(model->state, "umount");
+	lua_pushcfunction(model->state, ir_resources_umount_lua);
 	lua_settable(model->state, -3);
 
 	// Internal Constants

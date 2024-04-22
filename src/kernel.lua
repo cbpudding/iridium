@@ -47,13 +47,13 @@ function irpriv.kernel(opts)
 
     ir.info("ir.kernel: Kernel started")
 
-    if not ir.internal.physfs.mount(game) then
+    if not ir.internal.mount(game) then
         ir.error("ir.kernel: Failed to load game archive \"" .. game .. "\"")
         running = false
     end
 
     if running then
-        local main = ir.internal.physfs.fetch("main.lua")
+        local main = ir.internal.fetch("main.lua")
         if main then
             local status, err = pcall(loadstring(main))
             if status then
@@ -91,7 +91,7 @@ function irpriv.kernel(opts)
 
     ir.info("ir.kernel: Stopping kernel")
 
-    ir.internal.physfs.umount(game)
+    ir.internal.umount(game)
 end
 
 setmetatable(ir, {
