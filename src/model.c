@@ -41,7 +41,7 @@ int ir_model_new(ir_model *model) {
 	luaopen_math(model->state);
 	luaopen_bit(model->state);
 
-	lua_createtable(model->state, 0, 8);
+	lua_createtable(model->state, 0, 7);
 
 	lua_pushstring(model->state, "debug");
 	lua_pushcfunction(model->state, ir_debug_lua);
@@ -72,15 +72,6 @@ int ir_model_new(ir_model *model) {
 
 	lua_pushstring(model->state, "HALT");
 	lua_pushinteger(model->state, IRCMD_HALT);
-	lua_settable(model->state, -3);
-
-	lua_settable(model->state, -3);
-
-	lua_pushstring(model->state, "msg");
-	lua_createtable(model->state, 0, 1);
-
-	lua_pushstring(model->state, "NOTHING");
-	lua_pushinteger(model->state, 0);
 	lua_settable(model->state, -3);
 
 	lua_settable(model->state, -3);

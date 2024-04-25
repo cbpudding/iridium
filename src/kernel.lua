@@ -73,7 +73,7 @@ function irpriv.kernel(opts)
         if event and ir.subscriptions[event.type] then
             for _, listener in ipairs(ir.subscriptions[event.type]) do
                 local msg = listener(event)
-                if msg ~= ir.msg.NOTHING then
+                if msg then
                     command(ir.update(msg))
                     if not running then
                         break
