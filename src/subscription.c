@@ -70,6 +70,23 @@ int ir_subscription_poll_lua(lua_State *L) {
 		lua_settable(L, -3);
 
 		switch (event.type) {
+		case ALLEGRO_EVENT_DISPLAY_RESIZE:
+			lua_pushstring(L, "height");
+			lua_pushinteger(L, event.display.height);
+			lua_settable(L, -3);
+
+			lua_pushstring(L, "width");
+			lua_pushinteger(L, event.display.width);
+			lua_settable(L, -3);
+
+			lua_pushstring(L, "x");
+			lua_pushinteger(L, event.display.x);
+			lua_settable(L, -3);
+
+			lua_pushstring(L, "y");
+			lua_pushinteger(L, event.display.y);
+			lua_settable(L, -3);
+			break;
 		case ALLEGRO_EVENT_KEY_CHAR:
 			lua_pushstring(L, "unichar");
 			lua_pushinteger(L, event.keyboard.unichar);

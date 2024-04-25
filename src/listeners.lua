@@ -43,6 +43,12 @@ function ir.listener.generic(kind)
     end
 end
 
+-- TODO: EVENT_DISPLAY_ORIENTATION
+-- TODO: EVENT_DISPLAY_*_DRAWING
+-- TODO: EVENT_JOYSTICK_*
+-- TODO: EVENT_TOUCH_*
+
+ir.listener.focus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_IN)
 ir.listener.keychar = ir.listener.generic(ir.internal.EVENT_KEY_CHAR)
 ir.listener.keydown = ir.listener.generic(ir.internal.EVENT_KEY_DOWN)
 ir.listener.keyup = ir.listener.generic(ir.internal.EVENT_KEY_UP)
@@ -51,3 +57,6 @@ ir.listener.mousedown = ir.listener.generic(ir.internal.EVENT_MOUSE_DOWN)
 ir.listener.mouseenter = ir.listener.generic(ir.internal.EVENT_MOUSE_ENTER_DISPLAY)
 ir.listener.mouseleave = ir.listener.generic(ir.internal.EVENT_MOUSE_LEAVE_DISPLAY)
 ir.listener.mouseup = ir.listener.generic(ir.internal.EVENT_MOUSE_UP)
+ir.listener.quit = ir.listener.generic(ir.internal.EVENT_DISPLAY_CLOSE)
+ir.listener.resize = ir.listener.generic(ir.internal.EVENT_DISPLAY_RESIZE)
+ir.listener.unfocus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_OUT)
