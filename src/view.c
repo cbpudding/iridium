@@ -53,6 +53,7 @@ int ir_view_new(ir_view *view) {
 		al_destroy_display(view->display);
 		return 1;
 	}
+	ir_shader_use(&view->shader);
 	// ...
 	return 0;
 }
