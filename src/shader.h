@@ -11,8 +11,11 @@
 #include <GL/glext.h>
 
 typedef struct {
+	GLint camera;
 	GLuint fragment;
+	GLint position;
 	GLuint program;
+	GLuint vao;
 	GLuint vertex;
 } ir_shader;
 
@@ -24,5 +27,7 @@ int ir_shader_new(
 	size_t frag_len,
 	char *frag_src
 );
+
+void ir_shader_use(ir_shader *shader);
 
 #endif

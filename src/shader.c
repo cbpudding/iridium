@@ -70,5 +70,19 @@ int ir_shader_new(
 		return 1;
 	}
 
+	glGenVertexArrays(1, &shader->vao);
+	glBindVertexArray(shader->vao);
+
+	shader->position = glGetAttribLocation(shader->program, "position");
+	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(shader->position);
+
+	shader->camera = glGetUniformLocation(shader->program, "camera");
+
 	return 0;
+}
+
+void ir_shader_use(ir_shader *shader) {
+	glUseProgram(shader->program);
+	glBindVertexArray(shader->vao);
 }
