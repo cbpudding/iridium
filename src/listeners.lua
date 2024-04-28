@@ -31,10 +31,10 @@ function ir.listener.generic(kind)
                 for k, v in pairs(pattern) do
                     if type(v) == "function" then
                         if not v(event[k]) then
-                            return ir.msg.NOTHING
+                            return nil
                         end
                     elseif event[k] ~= v then
-                        return ir.msg.NOTHING
+                        return nil
                     end
                 end
                 return msg

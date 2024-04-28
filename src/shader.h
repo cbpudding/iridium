@@ -28,6 +28,6 @@ int ir_shader_new(
 	char *frag_src
 );
 
-void ir_shader_use(ir_shader *shader);
+void ir_shader_use(ir_shader *shader, GLuint vbo);
 
 #endif

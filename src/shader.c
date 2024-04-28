@@ -38,7 +38,7 @@ int ir_shader_new(
 	glGetShaderiv(shader->vertex, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE) {
 		glGetShaderInfoLog(shader->vertex, BUFSIZ, NULL, buffer);
-		ir_error("ir_shader_new: vertex: %s", buffer);
+		ir_error("ir_shader_new: %s", buffer);
 		glDeleteShader(shader->vertex);
 		return 1;
 	}
@@ -51,7 +51,7 @@ int ir_shader_new(
 	glGetShaderiv(shader->fragment, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE) {
 		glGetShaderInfoLog(shader->fragment, BUFSIZ, NULL, buffer);
-		ir_error("ir_shader_new: fragment: %s", buffer);
+		ir_error("ir_shader_new: %s", buffer);
 		glDeleteShader(shader->fragment);
 		glDeleteShader(shader->vertex);
 		return 1;
@@ -60,11 +60,12 @@ int ir_shader_new(
 	shader->program = glCreateProgram();
 	glAttachShader(shader->program, shader->fragment);
 	glAttachShader(shader->program, shader->vertex);
+	glBindFragDataLocation(shader->program, 0, "color");
 	glLinkProgram(shader->program);
 	glGetProgramiv(shader->program, GL_LINK_STATUS, &status);
 	if (status != GL_TRUE) {
 		glGetProgramInfoLog(shader->program, BUFSIZ, NULL, buffer);
-		ir_error("ir_shader_new: program: %s", buffer);
+		ir_error("ir_shader_new: %s", buffer);
 		// The entire structure has been initialized anyways so why not? ~ahill
 		ir_shader_drop(shader);
 		return 1;
@@ -74,15 +75,19 @@ int ir_shader_new(
 	glBindVertexArray(shader->vao);
 
 	shader->position = glGetAttribLocation(shader->program, "position");
-	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	ir_debug("ir_shader_new: shader->position = %d", shader->position);
+	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(shader->position);
 
 	shader->camera = glGetUniformLocation(shader->program, "camera");
+	ir_debug("ir_shader_new: shader->camera = %d", shader->camera);
 
 	return 0;
 }
 
-void ir_shader_use(ir_shader *shader) {
+void ir_shader_use(ir_shader *shader, GLuint vbo) {
 	glUseProgram(shader->program);
 	glBindVertexArray(shader->vao);
+	// Switching VAOs will unbind any existing VBOs! ~ahill
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }

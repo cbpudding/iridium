@@ -83,7 +83,40 @@ function irpriv.kernel(opts)
         end
         if time() / framerate > frames then
             ir.internal.clear()
-            -- ir.view()
+
+            local stage = ir.view()
+
+            local camera = stage.camera or {
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            }
+            -- ...
+
+            -- ...
+
+            local vertices = {}
+
+            -- In this case, "tess" is short for tessellation. I just didn't want to write "tessellation" a lot. ~ahill
+            for i, tess in ipairs(stage) do
+                if type(tess) == "function" then
+                    local verts = tess()
+                    -- 3 axes * 3 vertices/triangle = 9 values/triangle ~ahill
+                    if type(verts) == "table" and #verts % 9 == 0 then
+                        for _, n in ipairs(verts) do
+                            table.insert(vertices, n)
+                        end
+                    else
+                        ir.warn("ir.kernel: Value returned from index " .. i .. " is not renderable")
+                    end
+                else
+                    ir.warn("ir.kernel: Index " .. i .. " is not renderable")
+                end
+            end
+
+            ir.internal.render(vertices)
+
             ir.internal.present()
             frames = frames + 1
         end
