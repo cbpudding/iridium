@@ -60,7 +60,6 @@ int ir_shader_new(
 	shader->program = glCreateProgram();
 	glAttachShader(shader->program, shader->fragment);
 	glAttachShader(shader->program, shader->vertex);
-	glBindFragDataLocation(shader->program, 0, "color");
 	glLinkProgram(shader->program);
 	glGetProgramiv(shader->program, GL_LINK_STATUS, &status);
 	if (status != GL_TRUE) {
@@ -71,23 +70,15 @@ int ir_shader_new(
 		return 1;
 	}
 
-	glGenVertexArrays(1, &shader->vao);
-	glBindVertexArray(shader->vao);
-
 	shader->position = glGetAttribLocation(shader->program, "position");
-	ir_debug("ir_shader_new: shader->position = %d", shader->position);
-	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(shader->position);
 
 	shader->camera = glGetUniformLocation(shader->program, "camera");
-	ir_debug("ir_shader_new: shader->camera = %d", shader->camera);
 
 	return 0;
 }
 
 void ir_shader_use(ir_shader *shader, GLuint vbo) {
 	glUseProgram(shader->program);
-	glBindVertexArray(shader->vao);
-	// Switching VAOs will unbind any existing VBOs! ~ahill
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }

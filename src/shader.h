@@ -15,7 +15,6 @@ typedef struct {
 	GLuint fragment;
 	GLint position;
 	GLuint program;
-	GLuint vao;
 	GLuint vertex;
 } ir_shader;
 

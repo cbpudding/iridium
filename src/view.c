@@ -37,6 +37,7 @@ int ir_view_new(ir_view *view) {
 		ir_warn("ir_view_new: Failed to initialize the audio subsystem");
 	}
 	glGenBuffers(1, &view->vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, view->vbo);
 	if (ir_shader_new(
 			&view->shader,
 			src_default_vert_glsl_len,
@@ -89,9 +90,7 @@ int ir_view_render_lua(lua_State *L) {
 	}
 
 	glBufferData(GL_ARRAY_BUFFER, length, buffer, GL_STREAM_DRAW);
-	ir_debug("ir_view_render_lua: Rendering buffer with GPU");
 	glDrawArrays(GL_TRIANGLES, 0, lua_objlen(L, -1) / 3);
-	ir_debug("ir_view_render_lua: Buffer successfully rendered!");
 
 	free(buffer);
 	lua_pop(L, 1);
