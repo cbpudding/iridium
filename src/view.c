@@ -80,22 +80,20 @@ int ir_view_present_lua(lua_State *L) {
 int ir_view_render_lua(lua_State *L) {
 	// TODO: Is there a better way to do this? ~ahill
 	size_t length = lua_objlen(L, -1);
-	// TODO: Figure out why a dynamically allocated buffer causes issues. ~ahill
-	float buffer[BUFSIZ];
-	// float *buffer = malloc(length * sizeof(float));
+	float *buffer = malloc(length * sizeof(float));
 
 	for(size_t i = 0; i < length; i++) {
 		lua_pushinteger(L, i + 1);
 		lua_gettable(L, -2);
-		//*(buffer + (i * sizeof(float))) = lua_tonumber(L, -1);
 		buffer[i] = lua_tonumber(L, -1);
 		lua_pop(L, 1);
 	}
 
+	// TODO: Look into glBufferSubData to prevent the unnecessary reallocation of VRAM ~ahill
 	glBufferData(GL_ARRAY_BUFFER, length * sizeof(float), buffer, GL_STREAM_DRAW);
 	glDrawArrays(GL_TRIANGLES, 0, length / 3);
 
-	//free(buffer);
+	free(buffer);
 	lua_pop(L, 1);
 	return 0;
 }
