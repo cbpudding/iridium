@@ -53,7 +53,7 @@ int ir_view_new(ir_view *view) {
 		al_destroy_display(view->display);
 		return 1;
 	}
-	ir_shader_use(&view->shader, view->vbo);
+	ir_shader_use(&view->shader);
 	// ...
 	return 0;
 }
@@ -79,18 +79,18 @@ int ir_view_present_lua(lua_State *L) {
 
 int ir_view_render_lua(lua_State *L) {
 	// TODO: Is there a better way to do this? ~ahill
-	size_t length = sizeof(float) * lua_objlen(L, -1);
-	float *buffer = malloc(length);
+	size_t length = lua_objlen(L, -1);
+	float *buffer = malloc(length * sizeof(float));
 
-	lua_pushnil(L);
-	while(lua_next(L, -2)) {
-		// Don't forget that Lua indexing starts at 1! ~ahill
-		*(buffer + ((lua_tointeger(L, -2) - 1) * sizeof(float))) = lua_tonumber(L, -1);
+	for(size_t i = 0; i < length; i++) {
+		lua_pushinteger(L, i + 1);
+		lua_gettable(L, -2);
+		*(buffer + (i * sizeof(float))) = lua_tointeger(L, -1);
 		lua_pop(L, 1);
 	}
 
-	glBufferData(GL_ARRAY_BUFFER, length, buffer, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLES, 0, lua_objlen(L, -1) / 3);
+	glBufferData(GL_ARRAY_BUFFER, length * sizeof(float), buffer, GL_STREAM_DRAW);
+	glDrawArrays(GL_TRIANGLES, 0, length / 3);
 
 	free(buffer);
 	lua_pop(L, 1);

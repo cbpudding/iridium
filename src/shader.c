@@ -79,6 +79,6 @@ int ir_shader_new(
 	return 0;
 }
 
-void ir_shader_use(ir_shader *shader, GLuint vbo) {
+void ir_shader_use(ir_shader *shader) {
 	glUseProgram(shader->program);
 }
