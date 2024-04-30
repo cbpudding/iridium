@@ -70,12 +70,6 @@ int ir_shader_new(
 		return 1;
 	}
 
-	shader->position = glGetAttribLocation(shader->program, "position");
-	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(shader->position);
-
-	shader->camera = glGetUniformLocation(shader->program, "camera");
-
 	return 0;
 }
 

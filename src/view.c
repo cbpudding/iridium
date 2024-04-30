@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "log.h"
+#include "main.h"
 #include "view.h"
 
 // When will #embed be a thing? ~ahill
@@ -28,16 +29,20 @@ int ir_view_new(ir_view *view) {
 	);
 	al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
 	al_set_new_window_title("Iridium");
+
 	view->display = al_create_display(1920, 1080);
 	if (!view->display) {
 		ir_error("ir_view_new: Failed to create display");
 		return 1;
 	}
+
 	if (!al_install_audio()) {
 		ir_warn("ir_view_new: Failed to initialize the audio subsystem");
 	}
+
 	glGenBuffers(1, &view->vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, view->vbo);
+
 	if (ir_shader_new(
 			&view->shader,
 			src_default_vert_glsl_len,
@@ -53,8 +58,17 @@ int ir_view_new(ir_view *view) {
 		al_destroy_display(view->display);
 		return 1;
 	}
+
 	ir_shader_use(&view->shader);
+
+	view->position = glGetAttribLocation(view->shader.program, "position");
+	glVertexAttribPointer(view->position, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(view->position);
+
+	view->camera = glGetUniformLocation(view->shader.program, "camera");
+
 	// ...
+
 	return 0;
 }
 
@@ -94,6 +108,25 @@ int ir_view_render_lua(lua_State *L) {
 	glDrawArrays(GL_TRIANGLES, 0, length / 3);
 
 	free(buffer);
+	lua_pop(L, 1);
+	return 0;
+}
+
+int ir_view_setcamera_lua(lua_State *L) {
+	float buffer[16];
+	size_t length = lua_objlen(L, -1);
+
+	if(length == 16) {
+		for(size_t i = 0; i < 16; i++) {
+			lua_pushinteger(L, i + 1);
+			lua_gettable(L, -2);
+			buffer[i] = lua_tonumber(L, -1);
+			lua_pop(L, 1);
+		}
+
+		glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, buffer);
+	}
+
 	lua_pop(L, 1);
 	return 0;
 }

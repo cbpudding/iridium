@@ -22,7 +22,7 @@ end
 
 function ir.view()
     return {
-        (function()
+        (function(stage)
             return {
                 0.0, 0.5, 0.0,
                 0.5, -0.5, 0.0,
