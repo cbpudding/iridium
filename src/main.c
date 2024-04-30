@@ -94,6 +94,44 @@ int ir_run_opts(int argc, char *argv[], lua_State *L) {
 	return 0;
 }
 
+int ir_run_preferences(lua_State *L) {
+	ALLEGRO_CONFIG *config = al_load_config_file("preferences.ini");
+	ALLEGRO_CONFIG_ENTRY *entry;
+	const char *key;
+	int keycode;
+	const char *value;
+
+	if(config) {
+		lua_getglobal(L, "ir");
+
+		lua_pushstring(L, "binds");
+		lua_createtable(L, 0, 0);
+		key = al_get_first_config_entry(config, "binds", &entry);
+		while(key) {
+			value = al_get_config_value(config, "binds", key);
+
+			// This is probably safe to use because 0 isn't a valid keycode in Allegro. ~ahill
+			if((keycode = atoi(value))) {
+				lua_pushstring(L, key);
+				lua_pushinteger(L, keycode);
+				lua_settable(L, -3);
+			}
+
+			key = al_get_next_config_entry(&entry);
+		}
+		lua_settable(L, -3);
+
+		// ...
+
+		lua_pop(L, 1);
+		al_destroy_config(config);
+	} else {
+		ir_warn("ir_run_preferences: \"preferences.ini\" not found. Expect strange behavior!");
+	}
+
+	return 0;
+}
+
 int ir_run(int argc, char *argv[], ir_engine *engine) {
 	lua_getglobal(engine->model.state, "ir");
 	if (!lua_istable(engine->model.state, -1)) {
@@ -110,6 +148,11 @@ int ir_run(int argc, char *argv[], ir_engine *engine) {
 	}
 
 	if (ir_run_opts(argc, argv, engine->model.state)) {
+		lua_pop(engine->model.state, 2);
+		return 1;
+	}
+
+	if (ir_run_preferences(engine->model.state)) {
 		lua_pop(engine->model.state, 2);
 		return 1;
 	}
@@ -140,7 +183,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (PHYSFS_init(argv[0])) {
-		al_set_physfs_file_interface();
+		// Is this even needed? It messes with loading preferences.ini. ~ahill
+		// al_set_physfs_file_interface();
 		if (!ir_model_new(&ENGINE.model)) {
 			if (!ir_subscription_new(&ENGINE.subs)) {
 				if (!ir_view_new(&ENGINE.view)) {
