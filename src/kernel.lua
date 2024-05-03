@@ -140,4 +140,8 @@ setmetatable(ir, {
 
 ir.res = {}
 
--- ...
+setmetatable(ir.res, {
+    __index = function(t, k)
+        return ir.internal.fetch(k)
+    end
+})
