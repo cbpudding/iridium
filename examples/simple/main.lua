@@ -19,15 +19,3 @@ function ir.update(msg)
     end
     return ir.cmd.NONE
 end
-
-function ir.view()
-    return {
-        (function(stage)
-            return {
-                0.0, 0.5, 0.0,
-                0.5, -0.5, 0.0,
-                -0.5, -0.5, 0.0
-            }
-        end)
-    }
-end
