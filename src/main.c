@@ -98,30 +98,33 @@ int ir_run_preferences(lua_State *L) {
 	ALLEGRO_CONFIG *config = al_load_config_file("preferences.ini");
 	ALLEGRO_CONFIG_ENTRY *entry;
 	const char *key;
-	int keycode;
-	const char *value;
+	ALLEGRO_CONFIG_SECTION *section;
+	const char *section_name;
 
 	if(config) {
 		lua_getglobal(L, "ir");
 
-		lua_pushstring(L, "binds");
+		lua_pushstring(L, "pref");
 		lua_createtable(L, 0, 0);
-		key = al_get_first_config_entry(config, "binds", &entry);
-		while(key) {
-			value = al_get_config_value(config, "binds", key);
 
-			// This is probably safe to use because 0 isn't a valid keycode in Allegro. ~ahill
-			if((keycode = atoi(value))) {
+		section_name = al_get_first_config_section(config, &section);
+		while(section_name) {
+			lua_pushstring(L, section_name);
+			lua_createtable(L, 0, 0);
+
+			key = al_get_first_config_entry(config, section_name, &entry);
+			while(key) {
 				lua_pushstring(L, key);
-				lua_pushinteger(L, keycode);
+				lua_pushstring(L, al_get_config_value(config, section_name, key));
 				lua_settable(L, -3);
+				key = al_get_next_config_entry(&entry);
 			}
 
-			key = al_get_next_config_entry(&entry);
+			lua_settable(L, -3);
+			section_name = al_get_next_config_section(&section);
 		}
-		lua_settable(L, -3);
 
-		// ...
+		lua_settable(L, -3);
 
 		lua_pop(L, 1);
 		al_destroy_config(config);

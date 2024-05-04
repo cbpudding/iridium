@@ -8,7 +8,7 @@ end
 -- Listeners are registered here and will call the update function with messages if triggered
 ir.subscriptions = ir.register{
     -- When the quit bind is pressed, send the message "stop"
-    ir.listener.keydown({keycode = ir.binds.quit}, "stop")
+    ir.listener.keydown({keycode = tonumber(ir.pref.binds.quit)}, "stop")
 }
 
 -- Any messages that have been received from a listener are sent here
