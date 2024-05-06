@@ -3,6 +3,5 @@ The engine isn't complete yet. Here's what needs to be done:
 - Expose the entire PhysicsFS structure via a metatable on ir.res
 - Add matrix and vector math to Lua to properly work with quanternions
 - Properly define inputs and put them on a scale from 0.0 to 1.0 for player accessibility and seamless input handling
-- Allow a game to define a set of default player preferences
 - Expand rendering to high-level constructs such as textures and models
 - Document the publicly-facing Lua API for the engine

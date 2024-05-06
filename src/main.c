@@ -6,6 +6,7 @@
 #include <allegro5/allegro_physfs.h>
 #include <luajit-2.1/lua.h>
 #include <physfs.h>
+#include <stdio.h>
 
 #include "log.h"
 #include "main.h"
@@ -94,19 +95,61 @@ int ir_run_opts(int argc, char *argv[], lua_State *L) {
 	return 0;
 }
 
+void ir_run_preferences_ini() {
+	uint8_t *buffer;
+	FILE *file;
+	PHYSFS_File *file_physfs;
+	PHYSFS_sint64 length;
+
+	if((file_physfs = PHYSFS_openRead("preferences.ini"))) {
+		length = PHYSFS_fileLength(file_physfs);
+		if((buffer = malloc(length))) {
+			if(PHYSFS_readBytes(file_physfs, buffer, length) == length) {
+				if((file = fopen("preferences.ini", "w"))) {
+					fwrite(buffer, 1, length, file);
+					fclose(file);
+				}
+			}
+			free(buffer);
+		}
+		PHYSFS_close(file_physfs);
+	}
+}
+
 int ir_run_preferences(lua_State *L) {
+	const char *archive_name;
 	ALLEGRO_CONFIG *config = al_load_config_file("preferences.ini");
 	ALLEGRO_CONFIG_ENTRY *entry;
 	const char *key;
 	ALLEGRO_CONFIG_SECTION *section;
 	const char *section_name;
 
+	// This will only work because we have "opts" loaded on the Lua stack! ~ahill
+	lua_getfield(L, -1, "game");
+	if(lua_isstring(L, -1)) {
+		archive_name = lua_tostring(L, -1);
+	} else {
+		archive_name = "game.zip";
+	}
+	lua_pop(L, 1);
+
+	if(PHYSFS_mount(archive_name, NULL, true)) {
+		// If we couldn't open the file, copy the preferences file from the game and use that instead. ~ahill
+		if(!config && PHYSFS_exists("preferences.ini")) {
+			ir_info("ir_run_preferences: Preferences missing but a template exists. Copying.");
+			ir_run_preferences_ini();
+			config = al_load_config_file("preferences.ini");
+		}
+		// TODO: Do we have to unmount this even though we need to use this later on? ~ahill
+		PHYSFS_unmount(archive_name);
+	}
+
+	lua_getglobal(L, "ir");
+
+	lua_pushstring(L, "pref");
+	lua_createtable(L, 0, 0);
+
 	if(config) {
-		lua_getglobal(L, "ir");
-
-		lua_pushstring(L, "pref");
-		lua_createtable(L, 0, 0);
-
 		section_name = al_get_first_config_section(config, &section);
 		while(section_name) {
 			lua_pushstring(L, section_name);
@@ -124,13 +167,13 @@ int ir_run_preferences(lua_State *L) {
 			section_name = al_get_next_config_section(&section);
 		}
 
-		lua_settable(L, -3);
-
-		lua_pop(L, 1);
 		al_destroy_config(config);
 	} else {
 		ir_warn("ir_run_preferences: \"preferences.ini\" not found. Expect strange behavior!");
 	}
+
+	lua_settable(L, -3);
+	lua_pop(L, 1);
 
 	return 0;
 }
