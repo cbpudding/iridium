@@ -12,7 +12,6 @@ function irpriv.kernel(opts)
     -- cross-platform manner so this will have to do for now. ~ahill
     local framerate = 1 / (tonumber(opts.framerate) or 60)
     local frames = 0
-    local game = opts.game or "game.zip"
     local running = true
 
     ir.info("ir.kernel: Framerate set to " .. tostring(1 / framerate) .. "Hz")
@@ -46,11 +45,6 @@ function irpriv.kernel(opts)
     rawset(_G, "print", ir.info)
 
     ir.info("ir.kernel: Kernel started")
-
-    if not ir.internal.mount(game) then
-        ir.error("ir.kernel: Failed to load game archive \"" .. game .. "\"")
-        running = false
-    end
 
     if running then
         local main = ir.internal.fetch("main.lua")
@@ -125,8 +119,6 @@ function irpriv.kernel(opts)
     end
 
     ir.info("ir.kernel: Stopping kernel")
-
-    ir.internal.umount(game)
 end
 
 setmetatable(ir, {

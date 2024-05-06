@@ -117,31 +117,17 @@ void ir_run_preferences_ini() {
 }
 
 int ir_run_preferences(lua_State *L) {
-	const char *archive_name;
 	ALLEGRO_CONFIG *config = al_load_config_file("preferences.ini");
 	ALLEGRO_CONFIG_ENTRY *entry;
 	const char *key;
 	ALLEGRO_CONFIG_SECTION *section;
 	const char *section_name;
 
-	// This will only work because we have "opts" loaded on the Lua stack! ~ahill
-	lua_getfield(L, -1, "game");
-	if(lua_isstring(L, -1)) {
-		archive_name = lua_tostring(L, -1);
-	} else {
-		archive_name = "game.zip";
-	}
-	lua_pop(L, 1);
-
-	if(PHYSFS_mount(archive_name, NULL, true)) {
-		// If we couldn't open the file, copy the preferences file from the game and use that instead. ~ahill
-		if(!config && PHYSFS_exists("preferences.ini")) {
-			ir_info("ir_run_preferences: Preferences missing but a template exists. Copying.");
-			ir_run_preferences_ini();
-			config = al_load_config_file("preferences.ini");
-		}
-		// TODO: Do we have to unmount this even though we need to use this later on? ~ahill
-		PHYSFS_unmount(archive_name);
+	// If we couldn't open the file, copy the preferences file from the game and use that instead. ~ahill
+	if(!config && PHYSFS_exists("preferences.ini")) {
+		ir_info("ir_run_preferences: Preferences missing but a template exists. Copying.");
+		ir_run_preferences_ini();
+		config = al_load_config_file("preferences.ini");
 	}
 
 	lua_getglobal(L, "ir");
@@ -179,6 +165,8 @@ int ir_run_preferences(lua_State *L) {
 }
 
 int ir_run(int argc, char *argv[], ir_engine *engine) {
+	const char *archive_name;
+
 	lua_getglobal(engine->model.state, "ir");
 	if (!lua_istable(engine->model.state, -1)) {
 		ir_error("ir_run: Failed to get ir table");
@@ -198,6 +186,21 @@ int ir_run(int argc, char *argv[], ir_engine *engine) {
 		return 1;
 	}
 
+	// Figure out what the main archive is called and load it. ~ahill
+	lua_getfield(engine->model.state, -1, "game");
+	if(lua_isstring(engine->model.state, -1)) {
+		archive_name = lua_tostring(engine->model.state, -1);
+	} else {
+		archive_name = "game.zip";
+	}
+	lua_pop(engine->model.state, 1);
+
+	if(!PHYSFS_mount(archive_name, NULL, true)) {
+		ir_error("ir_run: Failed to mount %s", archive_name);
+		lua_pop(engine->model.state, 2);
+		return 1;
+	}
+
 	if (ir_run_preferences(engine->model.state)) {
 		lua_pop(engine->model.state, 2);
 		return 1;
@@ -213,6 +216,7 @@ int ir_run(int argc, char *argv[], ir_engine *engine) {
 	}
 
 	lua_pop(engine->model.state, 1);
+	PHYSFS_unmount(archive_name);
 
 	return 0;
 }
