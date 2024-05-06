@@ -123,6 +123,8 @@ end
 
 setmetatable(ir, {
     __index = irpriv,
+    -- "I hate this hacker crap!" ~ahill
+    __metatable = "You didn't say the magic word!",
     __newindex = function(t, k, v)
         if not irpriv[k] then
             rawset(t, k, v)
