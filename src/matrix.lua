@@ -4,15 +4,21 @@
 
 ir.matrix = {}
 
+-- Utility functions
+
+local function ismatrix(mat)
+    return type(mat) == "table" and mat.__type == "matrix"
+end
+
 -- Metatable definitions
 
 local col_meta = {}
 local row_meta = {}
 
 function col_meta.__index(t, k)
-    if k == "__columns" then
+    if k == "columns" then
         return #t[1]
-    elseif k == "__rows" then
+    elseif k == "rows" then
         return #t
     elseif k == "__type" then
         return "matrix"
@@ -22,13 +28,13 @@ function col_meta.__index(t, k)
 end
 
 function col_meta.__newindex(t, k, v)
-    if type(k) == "number" and k >= 1 and k <= t.__rows then
+    if type(k) == "number" and k >= 1 and k <= t.rows then
         rawset(t, k, v)
     end
 end
 
 function row_meta.__index(t, k)
-    if k == "__columns" then
+    if k == "columns" then
         return #t
     elseif k == "__type" then
         return "matrix.row"
@@ -38,12 +44,22 @@ function row_meta.__index(t, k)
 end
 
 function row_meta.__newindex(t, k, v)
-    if type(k) == "number" and k >= 1 and k <= t.__columns then
+    if type(k) == "number" and k >= 1 and k <= t.columns then
         rawset(t, k, v)
     end
 end
 
 -- Method definitions
+
+function ir.matrix.identity(size)
+    local matrix = ir.matrix.new(size, size)
+
+    for i = 1, size do
+        matrix[i][i] = 1
+    end
+
+    return matrix
+end
 
 function ir.matrix.new(cols, rows)
     local matrix = {}
