@@ -16,12 +16,18 @@ local col_meta = {}
 local row_meta = {}
 
 function col_meta.__index(t, k)
+    local methods = {
+        flatten = ir.matrix.flatten
+    }
+
     if k == "columns" then
         return #t[1]
     elseif k == "rows" then
         return #t
     elseif k == "__type" then
         return "matrix"
+    elseif methods[k] then
+        return methods[k]
     else
         return rawget(t, k)
     end
@@ -50,6 +56,18 @@ function row_meta.__newindex(t, k, v)
 end
 
 -- Method definitions
+
+function ir.matrix.flatten(matrix)
+    local result = {}
+
+    for c = 1, matrix.columns do
+        for r = 1, matrix.rows do
+            table.insert(result, matrix[c][r])
+        end
+    end
+
+    return result
+end
 
 function ir.matrix.identity(size)
     local matrix = ir.matrix.new(size, size)
