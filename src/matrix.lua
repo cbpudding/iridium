@@ -33,6 +33,51 @@ function col_meta.__index(t, k)
     end
 end
 
+function col_meta.__mul(left, right)
+    -- Keep the matrix on the left side for simplicity ~ahill
+    if left.__type ~= "matrix" then
+        left, right = right, left
+    end
+
+    -- Scalar multiplication
+    if type(right) == "number" then
+        local result = ir.matrix.new(left.columns, left.rows)
+
+        for c = 1, left.columns do
+            for r = 1, left.rows do
+                result[c][r] = left[c][r] * right
+            end
+        end
+
+        return result
+
+    -- Matrix multiplication
+    elseif right.__type == "matrix" then
+        -- Multiplying only works given the following condition! ~ahill
+        if left.columns ~= right.rows then
+            return nil
+        end
+
+        local result = ir.matrix.new(right.columns, left.rows)
+
+        for c = 1, result.columns do
+            for r = 1, result.rows do
+                -- We don't need to set the initial value because ir.matrix.new
+                -- gives a matrix that has already been zeroed out! ~ahill
+                for n = 1, left.columns do
+                    result[c][r] = result[c][r] + (left[c][n] * right[n][r])
+                end
+            end
+        end
+
+        return result
+
+    -- All other operations undefined! ~ahill
+    else
+        return nil
+    end
+end
+
 function col_meta.__newindex(t, k, v)
     if type(k) == "number" and k >= 1 and k <= t.rows then
         rawset(t, k, v)
