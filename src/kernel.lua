@@ -147,3 +147,19 @@ end
 ir.res = {}
 
 setmetatable(ir.res, res_meta(""))
+
+-- Program Defaults
+
+ir.subscriptions = {}
+
+function ir.init(opts)
+    return ir.cmd.NONE
+end
+
+function ir.view()
+    return {}
+end
+
+function ir.update(msg)
+    return ir.cmd.NONE
+end

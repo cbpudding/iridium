@@ -13,7 +13,6 @@
 #include "view.h"
 
 // Workaround for not having #embed yet. ~ahill
-#include "default.lua.h"
 #include "kernel.lua.h"
 #include "listeners.lua.h"
 #include "matrix.lua.h"
@@ -76,7 +75,7 @@ int ir_model_new(ir_model *model) {
 	);
 	if (lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
 		ir_error(
-			"ir_model_new: Failed to initialize Lua: %s",
+			"ir_model_new: Failed to initialize kernel: %s",
 			lua_tostring(model->state, -1)
 		);
 		lua_close(model->state);
@@ -107,21 +106,6 @@ int ir_model_new(ir_model *model) {
 	if (lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
 		ir_error(
 			"ir_model_new: Failed to initialize matrix math: %s",
-			lua_tostring(model->state, -1)
-		);
-		lua_close(model->state);
-		return 1;
-	}
-
-	luaL_loadbuffer(
-		model->state,
-		(const char *)src_default_lua,
-		src_default_lua_len,
-		"default.lua"
-	);
-	if (lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
-		ir_error(
-			"ir_model_new: Failed to initialize Lua: %s",
 			lua_tostring(model->state, -1)
 		);
 		lua_close(model->state);
