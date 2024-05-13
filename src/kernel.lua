@@ -132,21 +132,21 @@ setmetatable(ir, {
     end
 })
 
-local function res_meta(path)
+local function fs_meta(path)
     return {
         __index = function(t, k)
             local item = ir.internal.fetch(path .. k)
             if type(item) == "table" then
-                setmetatable(item, res_meta(path .. k .. "/"))
+                setmetatable(item, fs_meta(path .. k .. "/"))
             end
             return item
         end
     }
 end
 
-ir.res = {}
+ir.fs = {}
 
-setmetatable(ir.res, res_meta(""))
+setmetatable(ir.fs, fs_meta(""))
 
 -- Program Defaults
 
