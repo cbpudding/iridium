@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
 	if (!al_init()) {
 		// Substituting ir_error for good ol' printf because al_get_time causes
 		// undefined behavior if Allegro hasn't been initialized! ~ahill
-		printf("00000.0000 ERROR main: Failed to initialize Allegro\r\n");
+		printf("00000.0000 EROR main: Failed to initialize Allegro\r\n");
 		return 1;
 	}
 

@@ -7,14 +7,14 @@
 
 #include "log.h"
 
-const char *LOGLEVEL_PREFIX[4] = {"DEBUG", "ERROR", "INFO ", "WARN "};
+const char *LOGLEVEL_PREFIX[4] = {"DBUG", "EROR", "INFO", "WARN"};
 
 // Internal logging function. Should not be used outside of the other logging
 // functions for the developer's remaining sanity. ~ahill
 void ir_log(ir_loglevel level, const char *format, va_list args) {
-	printf("%011.4f %5s ", al_get_time(), LOGLEVEL_PREFIX[level]);
+	printf("%011.4f %4s ", al_get_time(), LOGLEVEL_PREFIX[level]);
 	vprintf(format, args);
-// Differing newlines for DOS-based systems. ~ahill
+// Differing newlines for DOS-based systems and teletypewriters. ~ahill
 #ifdef _WIN32
 	printf("\r\n");
 #else
@@ -24,14 +24,14 @@ void ir_log(ir_loglevel level, const char *format, va_list args) {
 
 void ir_log_lua(ir_loglevel level, lua_State *L) {
 	int argc = lua_gettop(L);
-	printf("%011.4f %5s ", al_get_time(), LOGLEVEL_PREFIX[level]);
-	for (int i = 1; i <= argc; i++) {
-		if (i > 1) {
+	printf("%011.4f %4s ", al_get_time(), LOGLEVEL_PREFIX[level]);
+	for (int i = argc; i >= 1; i--) {
+		if (i < argc) {
 			putc('\t', stdout);
 		}
-		printf("%s", lua_tostring(L, -1));
-		lua_pop(L, 1);
+		printf("%s", lua_tostring(L, i * -1));
 	}
+	lua_pop(L, argc);
 #ifdef _WIN32
 	printf("\r\n");
 #else
