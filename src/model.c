@@ -15,7 +15,6 @@
 // Workaround for not having #embed yet. ~ahill
 #include "kernel.lua.h"
 #include "listeners.lua.h"
-#include "matrix.lua.h"
 
 // TODO: Figure out how to prevent subscriptions from changing the game's state!
 // ~ahill
@@ -91,21 +90,6 @@ int ir_model_new(ir_model *model) {
 	if (lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
 		ir_error(
 			"ir_model_new: Failed to initialize listeners: %s",
-			lua_tostring(model->state, -1)
-		);
-		lua_close(model->state);
-		return 1;
-	}
-
-	luaL_loadbuffer(
-		model->state,
-		(const char *)src_matrix_lua,
-		src_matrix_lua_len,
-		"matrix.lua"
-	);
-	if (lua_pcall(model->state, 0, LUA_MULTRET, 0)) {
-		ir_error(
-			"ir_model_new: Failed to initialize matrix math: %s",
 			lua_tostring(model->state, -1)
 		);
 		lua_close(model->state);

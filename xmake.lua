@@ -19,7 +19,7 @@ target("iridium")
     set_kind("binary")
     set_languages("clatest")
     set_warnings("everything")
-    add_packages("allegro", "luajit", "physfs")
+    add_packages("allegro", "cglm", "luajit", "physfs")
     if is_plat("windows") or is_plat("mingw") then
         add_syslinks("opengl32")
     elseif is_plat("linux") then

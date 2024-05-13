@@ -86,7 +86,12 @@ function irpriv.kernel(opts)
             local stage = ir.view()
 
             -- If no explicit camera has been defined, use an identity matrix. ~ahill
-            stage.camera = (stage.camera or ir.matrix.identity(4)):flatten()
+            stage.camera = stage.camera or {
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            }
             ir.internal.setcamera(stage.camera)
 
             -- ...
