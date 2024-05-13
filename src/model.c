@@ -42,7 +42,7 @@ int ir_model_new(ir_model *model) {
 	luaopen_math(model->state);
 	luaopen_bit(model->state);
 
-	lua_createtable(model->state, 0, 7);
+	lua_createtable(model->state, 0, 6);
 
 	lua_pushstring(model->state, "debug");
 	lua_pushcfunction(model->state, ir_debug_lua);
@@ -62,19 +62,6 @@ int ir_model_new(ir_model *model) {
 
 	lua_pushstring(model->state, "warn");
 	lua_pushcfunction(model->state, ir_warn_lua);
-	lua_settable(model->state, -3);
-
-	lua_pushstring(model->state, "cmd");
-	lua_createtable(model->state, 0, 2);
-
-	lua_pushstring(model->state, "NONE");
-	lua_pushinteger(model->state, IRCMD_NONE);
-	lua_settable(model->state, -3);
-
-	lua_pushstring(model->state, "HALT");
-	lua_pushinteger(model->state, IRCMD_HALT);
-	lua_settable(model->state, -3);
-
 	lua_settable(model->state, -3);
 
 	ir_model_new_internal(model);

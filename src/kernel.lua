@@ -4,6 +4,11 @@
 
 local irpriv = {}
 
+irpriv.cmd = {
+    NONE = 0,
+    HALT = 1
+}
+
 -- "Take me with you! I'm the one man who knows everything!"
 function irpriv.kernel(opts)
     local epoch = ir.time()
