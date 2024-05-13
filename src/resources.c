@@ -76,6 +76,34 @@ int ir_resources_fetch_lua(lua_State *L) {
 	return 1;
 }
 
+int ir_resources_list_lua(lua_State *L) {
+	const char *container;
+	char **list;
+	PHYSFS_Stat stat;
+	if(lua_isstring(L, -1)) {
+		container = lua_tostring(L, -1);
+		if(PHYSFS_exists(container)) {
+			if(PHYSFS_stat(container, &stat)) {
+				if(stat.filetype == PHYSFS_FILETYPE_DIRECTORY) {
+					// It was between this and C callbacks. I thought this might
+					// be the lesser of two evils. ~ahill
+					list = PHYSFS_enumerateFiles(container);
+					if(list) {
+						lua_createtable(L, 0, 0);
+						for(int i = 0; list[i] != NULL; i++) {
+							lua_pushstring(L, list[i]);
+							lua_rawseti(L, -2, i + 1);
+						}
+						PHYSFS_freeList(list);
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
+
 int ir_resources_mount_lua(lua_State *L) {
 	bool status = false;
 	if (lua_isstring(L, -1)) {

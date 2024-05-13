@@ -109,7 +109,7 @@ int ir_model_time_lua(lua_State *L) {
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
 	lua_pushstring(model->state, "internal");
-	lua_createtable(model->state, 0, 39);
+	lua_createtable(model->state, 0, 40);
 
 	// Internal Functions
 
@@ -119,6 +119,10 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushstring(model->state, "fetch");
 	lua_pushcfunction(model->state, ir_resources_fetch_lua);
+	lua_settable(model->state, -3);
+
+	lua_pushstring(model->state, "list");
+	lua_pushcfunction(model->state, ir_resources_list_lua);
 	lua_settable(model->state, -3);
 
 	lua_pushstring(model->state, "mount");

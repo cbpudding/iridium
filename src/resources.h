@@ -8,6 +8,7 @@
 #include <luajit-2.1/lua.h>
 
 int ir_resources_fetch_lua(lua_State *L);
+int ir_resources_list_lua(lua_State *L);
 int ir_resources_mount_lua(lua_State *L);
 int ir_resources_umount_lua(lua_State *L);
 
