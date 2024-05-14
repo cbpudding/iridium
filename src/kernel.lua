@@ -157,6 +157,20 @@ local function fs_meta(path)
                 setmetatable(item, fs_meta(newpath))
             end
             return item
+        end,
+        -- Don't forget to compile LuaJIT with LUAJIT_ENABLE_LUA52COMPAT or
+        -- this won't work! ~ahill
+        __pairs = function(t)
+            local i = 1
+            local list = ir.internal.list(path)
+            return function(t, k)
+                if k == nil then
+                    return list[1], nil
+                else
+                    i = i + 1
+                    return list[i], nil
+                end
+            end
         end
     }
 end

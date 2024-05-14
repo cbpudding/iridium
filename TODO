@@ -3,5 +3,4 @@ The engine isn't complete yet. Here's what needs to be done:
 - Add matrix and vector math to Lua to properly work with quanternions
 - Properly define inputs and put them on a scale from 0.0 to 1.0 for player accessibility and seamless input handling
 - Expand rendering to high-level constructs such as textures and models
-- Implement iterating over a PhysicsFS structure
 - Clean up and document the publicly-facing Lua API for the engine
