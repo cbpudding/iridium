@@ -7,6 +7,7 @@
 #include <physfs.h>
 
 #include "log.h"
+#include "matrix.h"
 #include "model.h"
 #include "resources.h"
 #include "subscription.h"
@@ -109,7 +110,7 @@ int ir_model_time_lua(lua_State *L) {
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
 	lua_pushstring(model->state, "internal");
-	lua_createtable(model->state, 0, 40);
+	lua_createtable(model->state, 0, 41);
 
 	// Internal Functions
 
@@ -123,6 +124,10 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushstring(model->state, "list");
 	lua_pushcfunction(model->state, ir_resources_list_lua);
+	lua_settable(model->state, -3);
+
+	lua_pushstring(model->state, "matrix_new");
+	lua_pushcfunction(model->state, ir_matrix_new);
 	lua_settable(model->state, -3);
 
 	lua_pushstring(model->state, "mount");
