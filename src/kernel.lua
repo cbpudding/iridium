@@ -137,6 +137,8 @@ setmetatable(ir, {
     end
 })
 
+-- PhysicsFS integration
+
 local function fs_meta(path)
     return {
         __index = function(t, k)
@@ -178,6 +180,18 @@ end
 ir.fs = {}
 
 setmetatable(ir.fs, fs_meta(""))
+
+-- Matrix Math
+
+local matrix_meta = {
+    __mul = ir.internal.matrix_mul
+}
+
+function ir.matrix(columns, rows)
+    local victim = ir.internal.matrix_new(columns, rows)
+    setmetatable(victim, matrix_meta)
+    return victim
+end
 
 -- Program Defaults
 
