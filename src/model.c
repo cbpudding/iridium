@@ -110,7 +110,7 @@ int ir_model_time_lua(lua_State *L) {
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
 	lua_pushstring(model->state, "internal");
-	lua_createtable(model->state, 0, 42);
+	lua_createtable(model->state, 0, 44);
 
 	// Internal Functions
 
@@ -126,12 +126,20 @@ void ir_model_new_internal(ir_model *model) {
 	lua_pushcfunction(model->state, ir_resources_list_lua);
 	lua_settable(model->state, -3);
 
+	lua_pushstring(model->state, "matrix_index");
+	lua_pushcfunction(model->state, ir_matrix_index_lua);
+	lua_settable(model->state, -3);
+
 	lua_pushstring(model->state, "matrix_mul");
 	lua_pushcfunction(model->state, ir_matrix_mul_lua);
 	lua_settable(model->state, -3);
 
 	lua_pushstring(model->state, "matrix_new");
 	lua_pushcfunction(model->state, ir_matrix_new_lua);
+	lua_settable(model->state, -3);
+
+	lua_pushstring(model->state, "matrix_newindex");
+	lua_pushcfunction(model->state, ir_matrix_newindex_lua);
 	lua_settable(model->state, -3);
 
 	lua_pushstring(model->state, "mount");

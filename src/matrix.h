@@ -10,7 +10,7 @@
 
 typedef struct {
     int columns;
-    float raw[16];
+    float *raw;
     int rows;
 } ir_matrix;
 
@@ -27,6 +27,8 @@ int ir_matrix_new_lua(lua_State *L);
 
 // Lua methods
 
+int ir_matrix_index_lua(lua_State *L);
 int ir_matrix_mul_lua(lua_State *L);
+int ir_matrix_newindex_lua(lua_State *L);
 
 #endif

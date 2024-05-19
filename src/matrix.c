@@ -50,6 +50,7 @@ int ir_matrix_ismatrix(lua_State *L, int idx) {
         return 0;
     }
 
+    lua_pop(L, 1);
     return 1;
 }
 
@@ -59,12 +60,15 @@ void ir_matrix_tomatrix(lua_State *L, int idx, ir_matrix *matrix) {
 
     lua_getfield(L, idx, "columns");
     matrix->columns = lua_tonumber(L, -1);
+    lua_pop(L, 1);
 
     lua_getfield(L, idx, "raw");
-    matrix->columns = lua_touserdata(L, -1);
+    matrix->raw = lua_touserdata(L, -1);
+    lua_pop(L, 1);
 
     lua_getfield(L, idx, "rows");
     matrix->rows = lua_tonumber(L, -1);
+    lua_pop(L, 1);
 }
 
 // Constructors
@@ -74,6 +78,8 @@ void ir_matrix_new(int columns, int rows, ir_matrix *result) {
     result->rows = rows;
 
     // TODO: Should we even try to initialize data here? ~ahill
+
+    ir_debug("ir_matrix_new: Am I the problem?");
 }
 
 int ir_matrix_new_lua(lua_State *L) {
@@ -116,6 +122,32 @@ int ir_matrix_new_lua(lua_State *L) {
 
 // Lua methods
 
+int ir_matrix_index_lua(lua_State *L) {
+    int column;
+    int row;
+    ir_matrix victim;
+
+    if(lua_gettop(L) != 3) {
+        return 0;
+    }
+
+    if(!ir_matrix_ismatrix(L, -3)) {
+        return 0;
+    }
+
+    if(!lua_isnumber(L, -2) || !lua_isnumber(L, -1)) {
+        return 0;
+    }
+
+    ir_matrix_tomatrix(L, -3, &victim);
+    column = lua_tonumber(L, -2) - 1;
+    row = lua_tonumber(L, -1) - 1;
+
+    // TODO: Confirm that OpenGL matrices are column-major (at least on x86). ~ahill
+    lua_pushnumber(L, victim.raw[(column * victim.rows) + row]);
+    return 1;
+}
+
 int ir_matrix_mul_lua(lua_State *L) {
     ir_matrix a;
     ir_matrix b;
@@ -141,7 +173,7 @@ int ir_matrix_mul_lua(lua_State *L) {
     // If we're multiplying two vectors, "transpose" the matrix so the following code works properly. ~ahill
     if(a.columns == 1 && b.columns == 1) {
         temp = b.columns;
-        b.columns = b.rows
+        b.columns = b.rows;
         b.rows = temp;
     }
 
@@ -301,4 +333,32 @@ int ir_matrix_mul_lua(lua_State *L) {
 
     ir_matrix_frommatrix(L, &c);
     return 1;
+}
+
+int ir_matrix_newindex_lua(lua_State *L) {
+    int column;
+    int row;
+    float value;
+    ir_matrix victim;
+
+    if(lua_gettop(L) != 4) {
+        return 0;
+    }
+
+    if(!ir_matrix_ismatrix(L, -4)) {
+        return 0;
+    }
+
+    if(!lua_isnumber(L, -3) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1)) {
+        return 0;
+    }
+
+    ir_matrix_tomatrix(L, -4, &victim);
+    column = lua_tonumber(L, -3) - 1;
+    row = lua_tonumber(L, -2) - 1;
+    value = lua_tonumber(L, -1);
+
+    // TODO: Confirm that OpenGL matrices are column-major (at least on x86). ~ahill
+    victim.raw[(column * victim.rows) + row] = value;
+    return 0;
 }
