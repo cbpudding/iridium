@@ -120,6 +120,7 @@ int ir_matrix_mul_lua(lua_State *L) {
     ir_matrix a;
     ir_matrix b;
     ir_matrix c;
+    float temp;
 
     if(lua_gettop(L) != 2) {
         return 0;
@@ -137,13 +138,20 @@ int ir_matrix_mul_lua(lua_State *L) {
     ir_matrix_tomatrix(L, -1, &b);
     lua_pop(L, 2);
 
+    // If we're multiplying two vectors, "transpose" the matrix so the following code works properly. ~ahill
+    if(a.columns == 1 && b.columns == 1) {
+        temp = b.columns;
+        b.columns = b.rows
+        b.rows = temp;
+    }
+
     // Of course, we need to make sure the operation is valid. ~ahill
     if(a.columns != b.rows) {
         return 0;
     }
 
-    // We only support a minimum of 2 rows/columns and a maximum of 4 rows/columns ~ahill
-    if(a.columns < 2 || a.columns > 4) {
+    // We only support a minimum of 2 rows and 1 column and a maximum of 4 rows/columns ~ahill
+    if(a.columns < 1 || a.columns > 4) {
         return 0;
     }
 
@@ -151,7 +159,6 @@ int ir_matrix_mul_lua(lua_State *L) {
         return 0;
     }
 
-    // Special case for the right matrix since it may be a vector! ~ahill
     if(b.columns < 1 || b.columns > 4) {
         return 0;
     }
@@ -182,7 +189,20 @@ int ir_matrix_mul_lua(lua_State *L) {
     // For example, multiplying a 4x4 matrix by a four-dimensional vector will
     // create the "opcode" 0b111100 that we can use to call glm_mat4_mulv. ~ahill
     switch(((a.columns - 1) << 4) | ((a.rows - 1) << 2) | (b.columns - 1)) {
-        // TODO: Vector multiplied by vector
+        // vec2 * vec2
+        case 0b000101:
+            glm_vec2_mul(a.raw, b.raw, c.raw);
+            break;
+
+        // vec3 * vec3
+        case 0b001010:
+            glm_vec3_mul(a.raw, b.raw, c.raw);
+            break;
+
+        // vec4 * vec4
+        case 0b001111:
+            glm_vec4_mul(a.raw, b.raw, c.raw);
+            break;
 
         // mat2 * vec2
         case 0b010100:
