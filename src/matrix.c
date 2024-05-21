@@ -2,6 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <string.h>
+
+#include "log.h"
 #include "matrix.h"
 
 // Utility functions
@@ -238,92 +241,92 @@ int ir_matrix_mul_lua(lua_State *L) {
 
         // mat2 * vec2
         case 0b010100:
-            glm_mat2_mulv(a.raw, b.raw, c.raw);
+            glm_mat2_mulv((float (*)[2]) a.raw, b.raw, c.raw);
             break;
 
         // mat2 * mat2
         case 0b010101:
-            glm_mat2_mul(a.raw, b.raw, c.raw);
+            glm_mat2_mul((float (*)[2]) a.raw, (float (*)[2]) b.raw, (float (*)[2]) c.raw);
             break;
 
         // mat2x3 * vec2
         case 0b011000:
-            glm_mat2x3_mulv(a.raw, b.raw, c.raw);
+            glm_mat2x3_mulv((float (*)[3]) a.raw, b.raw, c.raw);
             break;
         
         // mat2x3 * mat3x2
         case 0b011010:
-            glm_mat2x3_mul(a.raw, b.raw, c.raw);
+            glm_mat2x3_mul((float (*)[3]) a.raw, (float (*)[2]) b.raw, (float (*)[2]) c.raw);
             break;
         
         // mat2x4 * vec2
         case 0b011100:
-            glm_mat2x4_mulv(a.raw, b.raw, c.raw);
+            glm_mat2x4_mulv((float (*)[4]) a.raw, b.raw, c.raw);
             break;
 
         // mat2x4 * mat4x2
         case 0b011111:
-            glm_mat2x4_mul(a.raw, b.raw, c.raw);
+            glm_mat2x4_mul((float (*)[4]) a.raw, (float (*)[2]) b.raw, (float (*)[2]) c.raw);
             break;
 
         // mat3x2 * vec3
         case 0b100100:
-            glm_mat3x2_mulv(a.raw, b.raw, c.raw);
+            glm_mat3x2_mulv((float (*)[2]) a.raw, b.raw, c.raw);
             break;
 
         // mat3x2 * mat2x3
         case 0b100101:
-            glm_mat3x2_mul(a.raw, b.raw, c.raw);
+            glm_mat3x2_mul((float (*)[2]) a.raw, (float (*)[3]) b.raw, (float (*)[3]) c.raw);
             break;
 
         // mat3 * vec3
         case 0b101000:
-            glm_mat3_mulv(a.raw, b.raw, c.raw);
+            glm_mat3_mulv((float (*)[3]) a.raw, b.raw, c.raw);
             break;
         
         // mat3 * mat3
         case 0b101010:
-            glm_mat3_mul(a.raw, b.raw, c.raw);
+            glm_mat3_mul((float (*)[3]) a.raw, (float (*)[3]) b.raw, (float (*)[3]) c.raw);
             break;
 
         // mat3x4 * vec3
         case 0b101100:
-            glm_mat3x4_mulv(a.raw, b.raw, c.raw);
+            glm_mat3x4_mulv((float (*)[4]) a.raw, b.raw, c.raw);
             break;
 
         // mat3x4 * mat4x3
         case 0b101111:
-            glm_mat3x4_mul(a.raw, b.raw, c.raw);
+            glm_mat3x4_mul((float (*)[4]) a.raw, (float (*)[3]) b.raw, (float (*)[3]) c.raw);
             break;
         
         // mat4x2 * vec4
         case 0b110100:
-            glm_mat4x2_mulv(a.raw, b.raw, c.raw);
+            glm_mat4x2_mulv((float (*)[2]) a.raw, b.raw, c.raw);
             break;
         
         // mat4x2 * mat2x4
         case 0b110101:
-            glm_mat4x2_mul(a.raw, b.raw, c.raw);
+            glm_mat4x2_mul((float (*)[2]) a.raw, (float (*)[4]) b.raw, (float (*)[4]) c.raw);
             break;
         
         // mat4x3 * vec4
         case 0b111000:
-            glm_mat4x3_mulv(a.raw, b.raw, c.raw);
+            glm_mat4x3_mulv((float (*)[3]) a.raw, b.raw, c.raw);
             break;
 
         // mat4x3 * mat3x4
         case 0b111010:
-            glm_mat4x3_mul(a.raw, b.raw, c.raw);
+            glm_mat4x3_mul((float (*)[3]) a.raw, (float (*)[4]) b.raw, (float (*)[4]) c.raw);
             break;
 
         // mat4 * vec4
         case 0b111100:
-            glm_mat4_mulv(a.raw, b.raw, c.raw);
+            glm_mat4_mulv((float (*)[4]) a.raw, b.raw, c.raw);
             break;
         
         // mat4 * mat4
         case 0b111111:
-            glm_mat4_mul(a.raw, b.raw, c.raw);
+            glm_mat4_mul((float (*)[4]) a.raw, (float (*)[4]) b.raw, (float (*)[4]) c.raw);
             break;
 
         // Of course, if it's not on the list, it's not happening. ~ahill
