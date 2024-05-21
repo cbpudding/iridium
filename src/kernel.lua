@@ -4,6 +4,8 @@
 
 local irpriv = {}
 
+irpriv.bind = {}
+
 irpriv.cmd = {
     NONE = 0,
     HALT = 1
@@ -34,6 +36,23 @@ function irpriv.kernel(opts)
         end
     end
 
+    local function parse_bind(line)
+        local bind_mapping = {}
+
+        local tokens = {}
+
+        for token in line:gmatch("%w+") do
+            table.insert(tokens, token)
+        end
+
+        if not bind_mapping[tokens[1]] then
+            ir.warn("ir.kernel.parse_bind: Invalid bind type \"" .. tokens[1] .. "\"")
+            return nil
+        end
+
+        return bind_mapping[tokens[1]](tokens)
+    end
+
     local function time()
         -- We have an epoch in the kernel that is subtracted from the engine's
         -- time so we don't get stuck rendering frames at the very beginning.
@@ -48,6 +67,11 @@ function irpriv.kernel(opts)
 
     -- Proxy I/O functions
     rawset(_G, "print", ir.info)
+
+    -- Interpret binds
+    for bind, line in pairs(ir.pref.binds) do
+        irpriv.bind[bind] = parse_bind(line)
+    end
 
     ir.info("ir.kernel: Kernel started")
 
