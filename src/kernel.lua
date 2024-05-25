@@ -2,9 +2,9 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-local irpriv = {}
+local ir.internal.bindstate = {}
 
-irpriv.bind = {}
+local irpriv = {}
 
 irpriv.cmd = {
     NONE = 0,
@@ -297,6 +297,25 @@ ir.listener.mouseup = ir.listener.generic(ir.internal.EVENT_MOUSE_UP)
 ir.listener.quit = ir.listener.generic(ir.internal.EVENT_DISPLAY_CLOSE)
 ir.listener.resize = ir.listener.generic(ir.internal.EVENT_DISPLAY_RESIZE)
 ir.listener.unfocus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_OUT)
+
+function ir.listener.bind(bind)
+    local active = false
+    return function(cond, msg)
+        if type(cond) == "function" then
+            if ir.internal.bindstate[bind] then
+                if cond(ir.internal.bindstate[bind]) then
+                    if not active then
+                        active = true
+                        return msg
+                    end
+                else
+                    active = false
+                end
+            end
+        end
+        return nil
+    end
+end
 
 -- Program Defaults
 
