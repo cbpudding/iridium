@@ -246,6 +246,58 @@ function ir.matrix(columns, rows)
     return victim
 end
 
+-- Listeners
+
+function ir.register(listeners)
+    local subs = {}
+    for i, listener in ipairs(listeners) do
+        if type(listener) ~= "table" or #listener ~= 2 or type(listener[2]) ~= "function" then
+            ir.error("ir.register: Invalid subscription registration at " .. i)
+        else
+            if not subs[listener[1]] then
+                subs[listener[1]] = {}
+            end
+            table.insert(subs[listener[1]], listener[2])
+        end
+    end
+    return subs
+end
+
+ir.listener = {}
+
+function ir.listener.generic(kind)
+    return function(pattern, msg)
+        return {
+            kind,
+            function(event)
+                for k, v in pairs(pattern) do
+                    if type(v) == "function" then
+                        if not v(event[k]) then
+                            return nil
+                        end
+                    elseif event[k] ~= v then
+                        return nil
+                    end
+                end
+                return msg
+            end
+        }
+    end
+end
+
+ir.listener.focus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_IN)
+ir.listener.keychar = ir.listener.generic(ir.internal.EVENT_KEY_CHAR)
+ir.listener.keydown = ir.listener.generic(ir.internal.EVENT_KEY_DOWN)
+ir.listener.keyup = ir.listener.generic(ir.internal.EVENT_KEY_UP)
+ir.listener.mouseaxes = ir.listener.generic(ir.internal.EVENT_MOUSE_AXES)
+ir.listener.mousedown = ir.listener.generic(ir.internal.EVENT_MOUSE_DOWN)
+ir.listener.mouseenter = ir.listener.generic(ir.internal.EVENT_MOUSE_ENTER_DISPLAY)
+ir.listener.mouseleave = ir.listener.generic(ir.internal.EVENT_MOUSE_LEAVE_DISPLAY)
+ir.listener.mouseup = ir.listener.generic(ir.internal.EVENT_MOUSE_UP)
+ir.listener.quit = ir.listener.generic(ir.internal.EVENT_DISPLAY_CLOSE)
+ir.listener.resize = ir.listener.generic(ir.internal.EVENT_DISPLAY_RESIZE)
+ir.listener.unfocus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_OUT)
+
 -- Program Defaults
 
 ir.subscriptions = {}
