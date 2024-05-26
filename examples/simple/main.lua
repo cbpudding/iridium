@@ -17,3 +17,16 @@ function ir.update(msg)
     end
     return ir.cmd.NONE
 end
+
+-- Display a simple triangle to verify that everything works
+function ir.view()
+    return {
+        (function(stage)
+            return {
+                0.0, 0.5, 0.0,
+                0.5, -0.5, 0.0,
+                -0.5, -0.5, 0.0
+            }
+        end)
+    }
+end
