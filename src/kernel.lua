@@ -2,9 +2,11 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-local ir.internal.bindstate = {}
+ir.internal.binds = {}
 
 local irpriv = {}
+
+irpriv.bind = {}
 
 irpriv.cmd = {
     NONE = 0,
@@ -36,23 +38,6 @@ function irpriv.kernel(opts)
         end
     end
 
-    local function parse_bind(line)
-        local bind_mapping = {}
-
-        local tokens = {}
-
-        for token in line:gmatch("%w+") do
-            table.insert(tokens, token)
-        end
-
-        if not bind_mapping[tokens[1]] then
-            ir.warn("ir.kernel.parse_bind: Invalid bind type \"" .. tokens[1] .. "\"")
-            return nil
-        end
-
-        return bind_mapping[tokens[1]](tokens)
-    end
-
     local function time()
         -- We have an epoch in the kernel that is subtracted from the engine's
         -- time so we don't get stuck rendering frames at the very beginning.
@@ -68,9 +53,61 @@ function irpriv.kernel(opts)
     -- Proxy I/O functions
     rawset(_G, "print", ir.info)
 
-    -- Interpret binds
-    for bind, line in pairs(ir.pref.binds) do
-        irpriv.bind[bind] = parse_bind(line)
+    -- Interpret user binds
+    for name, line in pairs(ir.pref.binds) do
+        local tokens = {}
+
+        for token in line:gmatch("%w+") do
+            table.insert(tokens, token)
+        end
+
+        if #tokens > 1 then
+            if tokens[1] == "key" then
+                if #tokens == 3 then
+                    local keycode = tonumber(tokens[2])
+                    if keycode then
+                        irpriv.bind[name] = 0
+                        if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN] then
+                            ir.internal.binds[ir.internal.EVENT_KEY_DOWN] = {}
+                        end
+                        if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] then
+                            ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] = {}
+                        end
+                        if tokens[3] == "toggle" then
+                            table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                                if irpriv.bind[name] == 0 then
+                                    irpriv.bind[name] = 1
+                                else
+                                    irpriv.bind[name] = 0
+                                end
+                            end)
+                        else
+                            if tokens[3] ~= "hold" then
+                                ir.warn("ir.kernel: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
+                            end
+                            if not ir.internal.binds[ir.internal.EVENT_KEY_UP] then
+                                ir.internal.binds[ir.internal.EVENT_KEY_UP] = {}
+                            end
+                            if not ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] then
+                                ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] = {}
+                            end
+                            table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                                irpriv.bind[name] = 1
+                            end)
+                            table.insert(ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode], function(event)
+                                irpriv.bind[name] = 0
+                            end)
+                        end
+                    else
+                        ir.warn("ir.kernel: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+                    end
+                else
+                    ir.warn("ir.kernel: Invalid format for bind \"" .. name .. "\"")
+                end
+            else
+                ir.warn("ir.kernel: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
+            end
+        end
     end
 
     ir.info("ir.kernel: Kernel started")
@@ -92,10 +129,19 @@ function irpriv.kernel(opts)
     end
 
     while running do
-        event = ir.internal.poll()
-        if event and ir.subscriptions[event.type] then
-            for _, listener in ipairs(ir.subscriptions[event.type]) do
-                local msg = listener(event)
+        local event = ir.internal.poll()
+        if event and ir.internal.binds[event.type] then
+            if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_DOWN then
+                if ir.internal.binds[event.type][event.keycode] then
+                    for _, update in ipairs(ir.internal.binds[event.type][event.keycode]) do
+                        update(event)
+                    end
+                end
+            else
+                ir.warn("ir.kernel: Unhandled event type " .. event.type)
+            end
+            for _, listener in ipairs(ir.subscriptions) do
+                local msg = listener()
                 if msg then
                     command(ir.update(msg))
                     if not running then
@@ -248,73 +294,33 @@ end
 
 -- Listeners
 
-function ir.register(listeners)
-    local subs = {}
-    for i, listener in ipairs(listeners) do
-        if type(listener) ~= "table" or #listener ~= 2 or type(listener[2]) ~= "function" then
-            ir.error("ir.register: Invalid subscription registration at " .. i)
-        else
-            if not subs[listener[1]] then
-                subs[listener[1]] = {}
-            end
-            table.insert(subs[listener[1]], listener[2])
-        end
-    end
-    return subs
-end
-
 ir.listener = {}
 
-function ir.listener.generic(kind)
-    return function(pattern, msg)
-        return {
-            kind,
-            function(event)
-                for k, v in pairs(pattern) do
-                    if type(v) == "function" then
-                        if not v(event[k]) then
-                            return nil
-                        end
-                    elseif event[k] ~= v then
-                        return nil
-                    end
-                end
+function ir.listener.bind(bind, cond, msg)
+    local active = false
+    return {
+        function()
+            if cond(ir.bind[bind]) and not active then
+                active = true
                 return msg
+            elseif active then
+                active = false
             end
-        }
-    end
+            return nil
+        end
+    }
 end
 
-ir.listener.focus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_IN)
-ir.listener.keychar = ir.listener.generic(ir.internal.EVENT_KEY_CHAR)
-ir.listener.keydown = ir.listener.generic(ir.internal.EVENT_KEY_DOWN)
-ir.listener.keyup = ir.listener.generic(ir.internal.EVENT_KEY_UP)
-ir.listener.mouseaxes = ir.listener.generic(ir.internal.EVENT_MOUSE_AXES)
-ir.listener.mousedown = ir.listener.generic(ir.internal.EVENT_MOUSE_DOWN)
-ir.listener.mouseenter = ir.listener.generic(ir.internal.EVENT_MOUSE_ENTER_DISPLAY)
-ir.listener.mouseleave = ir.listener.generic(ir.internal.EVENT_MOUSE_LEAVE_DISPLAY)
-ir.listener.mouseup = ir.listener.generic(ir.internal.EVENT_MOUSE_UP)
-ir.listener.quit = ir.listener.generic(ir.internal.EVENT_DISPLAY_CLOSE)
-ir.listener.resize = ir.listener.generic(ir.internal.EVENT_DISPLAY_RESIZE)
-ir.listener.unfocus = ir.listener.generic(ir.internal.EVENT_DISPLAY_SWITCH_OUT)
+function ir.listener.merge(listeners)
+    local merged = {}
 
-function ir.listener.bind(bind)
-    local active = false
-    return function(cond, msg)
-        if type(cond) == "function" then
-            if ir.internal.bindstate[bind] then
-                if cond(ir.internal.bindstate[bind]) then
-                    if not active then
-                        active = true
-                        return msg
-                    end
-                else
-                    active = false
-                end
-            end
+    for _, list in ipairs(listeners) do
+        for _, listener in ipairs(list) do
+            table.insert(merged, listener)
         end
-        return nil
     end
+
+    return merged
 end
 
 -- Program Defaults

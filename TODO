@@ -1,5 +1,7 @@
 The engine isn't complete yet. Here's what needs to be done:
 
-- Properly define inputs and put them on a scale from 0.0 to 1.0 for player accessibility and seamless input handling
 - Expand rendering to high-level constructs such as textures and models
 - Clean up and document the publicly-facing Lua API for the engine
+- Clean up bind parsing/handling
+- Add mouse/joystick support
+- Determine the best way to handle audio
