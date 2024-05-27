@@ -251,46 +251,11 @@ ir.fs = {}
 
 setmetatable(ir.fs, fs_meta(""))
 
--- Matrix Math
+-- Matrix/Vector Math
 
-local function matrix_row_meta(parent, column, rows)
-    return {
-        __index = function(t, k)
-            if k >= 1 and k <= rows then
-                return ir.internal.matrix_index(parent, column, k)
-            end
-        end,
-        __newindex = function(t, k, v)
-            if k >= 1 and k <= rows then
-                ir.internal.matrix_newindex(parent, column, k, v)
-            end
-        end
-    }
-end
+ir.mat = {}
 
-local matrix_meta = {
-    __index = function(t, k)
-        if k >= 1 and k <= rawget(t, "columns") then
-            local column = {}
-            setmetatable(column, matrix_row_meta(t, k, rawget(t, "rows")))
-            return column
-        elseif rawget(t, k) then
-            return rawget(t, k)
-        end
-    end,
-    -- "Gandalf!" ~ahill
-    __metatable = "You shall not pass!",
-    __mul = ir.internal.matrix_mul,
-    __newindex = function(t, k, v)
-        -- No! ~ahill
-    end
-}
-
-function ir.matrix(columns, rows)
-    local victim = ir.internal.matrix_new(columns, rows)
-    setmetatable(victim, matrix_meta)
-    return victim
-end
+ir.vec = {}
 
 -- Listeners
 

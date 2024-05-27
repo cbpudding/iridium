@@ -8,27 +8,47 @@
 #include <cglm/cglm.h>
 #include <luajit-2.1/lua.h>
 
-typedef struct {
-    int columns;
-    float *raw;
-    int rows;
-} ir_matrix;
+// Matrix Interface
 
-// Utility functions
+int ir_matrix_ismatrix(lua_State *L, int index);
+void ir_matrix_pushmatrix(lua_State *L, mat4 *victim);
+void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest);
 
-void ir_matrix_frommatrix(lua_State *L, ir_matrix *victim);
-int ir_matrix_ismatrix(lua_State *L, int idx);
-void ir_matrix_tomatrix(lua_State *L, int idx, ir_matrix *matrix);
+// Matrix Operations
 
-// Constructors
+int ir_matrix_identity_lua(lua_State *L);
+int ir_matrix_inverse_lua(lua_State *L);
+int ir_matrix_multiply_lua(lua_State *L);
+int ir_matrix_peek_lua(lua_State *L);
+int ir_matrix_poke_lua(lua_State *L);
+int ir_matrix_transpose_lua(lua_State *L);
+int ir_matrix_zero_lua(lua_State *L);
 
-void ir_matrix_new(int columns, int rows, ir_matrix *result);
-int ir_matrix_new_lua(lua_State *L);
+// Vector Interface
 
-// Lua methods
+int ir_vector_isvector(lua_State *L, int index);
+void ir_vector_pushvector(lua_State *L, vec4 *victim);
+void ir_vector_tovector(lua_State *L, int index, vec4 *dest);
 
-int ir_matrix_index_lua(lua_State *L);
-int ir_matrix_mul_lua(lua_State *L);
-int ir_matrix_newindex_lua(lua_State *L);
+// Vector Operations
+
+int ir_vector_add_lua(lua_State *L);
+int ir_vector_clamp_lua(lua_State *L);
+int ir_vector_distance_lua(lua_State *L);
+int ir_vector_divide_lua(lua_State *L);
+int ir_vector_dot_lua(lua_State *L);
+int ir_vector_lerp_lua(lua_State *L);
+int ir_vector_magnitude_lua(lua_State *L);
+int ir_vector_max_lua(lua_State *L);
+int ir_vector_min_lua(lua_State *L);
+int ir_vector_multiply_lua(lua_State *L);
+int ir_vector_negate_lua(lua_State *L);
+int ir_vector_normalize_lua(lua_State *L);
+int ir_vector_one_lua(lua_State *L);
+int ir_vector_peek_lua(lua_State *L);
+int ir_vector_poke_lua(lua_State *L);
+int ir_vector_reflect_lua(lua_State *L);
+int ir_vector_subtract_lua(lua_State *L);
+int ir_vector_zero_lua(lua_State *L);
 
 #endif
