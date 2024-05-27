@@ -10,13 +10,11 @@
 
 int ir_matrix_ismatrix(lua_State *L, int index) {
     const char *type;
-    void *userdata;
 
     if(!lua_isuserdata(L, index)) {
         return 0;
     }
 
-    userdata = lua_touserdata(L, index);
     lua_getfield(L, index, "__type");
     if(!lua_isstring(L, -1)) {
         lua_pop(L, 1);
@@ -115,13 +113,11 @@ int ir_matrix_zero_lua(lua_State *L) {
 
 int ir_vector_isvector(lua_State *L, int index) {
     const char *type;
-    void *userdata;
 
     if(!lua_isuserdata(L, index)) {
         return 0;
     }
 
-    userdata = lua_touserdata(L, index);
     lua_getfield(L, index, "__type");
     if(!lua_isstring(L, -1)) {
         lua_pop(L, 1);

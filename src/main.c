@@ -65,14 +65,12 @@ int ir_run_opts(int argc, char *argv[], lua_State *L) {
 					stage = 3;
 				} else if (args[i] == ' ') {
 					args[i] = 0;
-					lua_pushstring(L, args + key);
 					lua_pushstring(L, args + value);
-					lua_settable(L, -3);
+					lua_setfield(L, -2, args + key);
 					stage = 0;
 				} else if (i + 1 == len) {
-					lua_pushstring(L, args + key);
 					lua_pushstring(L, args + value);
-					lua_settable(L, -3);
+					lua_setfield(L, -2, args + key);
 					// This probably doesn't matter but my gut tells me that
 					// something will go terribly wrong if I don't do this.
 					// ~ahill
@@ -82,9 +80,8 @@ int ir_run_opts(int argc, char *argv[], lua_State *L) {
 			case 3:
 				if (args[i] == '"') {
 					args[i] = 0;
-					lua_pushstring(L, args + key);
 					lua_pushstring(L, args + value);
-					lua_settable(L, -3);
+					lua_setfield(L, -2, args + key);
 					stage = 0;
 				}
 				break;
@@ -132,24 +129,21 @@ int ir_run_preferences(lua_State *L) {
 
 	lua_getglobal(L, "ir");
 
-	lua_pushstring(L, "pref");
 	lua_createtable(L, 0, 0);
 
 	if(config) {
 		section_name = al_get_first_config_section(config, &section);
 		while(section_name) {
-			lua_pushstring(L, section_name);
 			lua_createtable(L, 0, 0);
 
 			key = al_get_first_config_entry(config, section_name, &entry);
 			while(key) {
-				lua_pushstring(L, key);
 				lua_pushstring(L, al_get_config_value(config, section_name, key));
-				lua_settable(L, -3);
+				lua_setfield(L, -2, key);
 				key = al_get_next_config_entry(&entry);
 			}
 
-			lua_settable(L, -3);
+			lua_setfield(L, -2, section_name);
 			section_name = al_get_next_config_section(&section);
 		}
 
@@ -158,7 +152,7 @@ int ir_run_preferences(lua_State *L) {
 		ir_warn("ir_run_preferences: \"preferences.ini\" not found. Expect strange behavior!");
 	}
 
-	lua_settable(L, -3);
+	lua_setfield(L, -2, "pref");
 	lua_pop(L, 1);
 
 	return 0;
