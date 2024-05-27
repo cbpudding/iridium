@@ -115,7 +115,7 @@ function irpriv.kernel(opts)
     if running then
         local main = ir.internal.fetch("main.lua")
         if main then
-            local status, err = pcall(loadstring(main))
+            local status, err = pcall(assert(loadstring(main), "Failed to parse main.lua"))
             if status then
                 command(ir.init(opts))
             else
@@ -131,7 +131,7 @@ function irpriv.kernel(opts)
     while running do
         local event = ir.internal.poll()
         if event and ir.internal.binds[event.type] then
-            if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_DOWN then
+            if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_UP then
                 if ir.internal.binds[event.type][event.keycode] then
                     for _, update in ipairs(ir.internal.binds[event.type][event.keycode]) do
                         update(event)
@@ -290,16 +290,20 @@ end
 
 -- Program Defaults
 
+---@diagnostic disable-next-line: duplicate-set-field
 ir.subscriptions = {}
 
+---@diagnostic disable-next-line: duplicate-set-field
 function ir.init(opts)
     return ir.cmd.NONE
 end
 
+---@diagnostic disable-next-line: duplicate-set-field
 function ir.view()
     return {}
 end
 
+---@diagnostic disable-next-line: duplicate-set-field
 function ir.update(msg)
     return ir.cmd.NONE
 end

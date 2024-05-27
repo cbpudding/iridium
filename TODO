@@ -5,3 +5,4 @@ The engine isn't complete yet. Here's what needs to be done:
 - Clean up bind parsing/handling
 - Add mouse/joystick support
 - Determine the best way to handle audio
+- Implement haptic feedback
