@@ -42,7 +42,7 @@ void ir_matrix_metatable(lua_State *L, int index) {
 
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
     mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
-    glm_mat4_copy((float (*)[4]) victim, (float (*)[4]) userdata);
+    glm_mat4_copy(*victim, *userdata);
     ir_matrix_metatable(L, -1);
 }
 
@@ -51,7 +51,7 @@ void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest) {
 
     if(ir_matrix_ismatrix(L, index)) {
         userdata = lua_touserdata(L, index);
-        glm_mat4_copy((float (*)[4]) userdata, (float (*)[4]) dest);
+        glm_mat4_copy(*userdata, *dest);
     }
 }
 
@@ -89,7 +89,7 @@ int ir_matrix_from_lua(lua_State *L) {
 
 int ir_matrix_identity_lua(lua_State *L) {
     mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
-    glm_mat4_identity((float (*)[4]) userdata);
+    glm_mat4_identity(*userdata);
     ir_matrix_metatable(L, -1);
     return 1;
 }
@@ -102,7 +102,7 @@ int ir_matrix_inverse_lua(lua_State *L) {
         input = lua_touserdata(L, -1);
         lua_pop(L, 1);
         output = lua_newuserdata(L, sizeof(mat4));
-        glm_mat4_inv((float (*)[4]) input, (float (*)[4]) output);
+        glm_mat4_inv(*input, *output);
         ir_matrix_metatable(L, -1);
         return 1;
     }
@@ -158,7 +158,7 @@ int ir_matrix_transpose_lua(lua_State *L) {
         input = lua_touserdata(L, -1);
         lua_pop(L, 1);
         output = lua_newuserdata(L, sizeof(mat4));
-        glm_mat4_transpose_to((float (*)[4]) input, (float (*)[4]) output);
+        glm_mat4_transpose_to(*input, *output);
         ir_matrix_metatable(L, -1);
         return 1;
     }
@@ -168,7 +168,7 @@ int ir_matrix_transpose_lua(lua_State *L) {
 
 int ir_matrix_zero_lua(lua_State *L) {
     mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
-    glm_mat4_zero((float (*)[4]) userdata);
+    glm_mat4_zero(*userdata);
     ir_matrix_metatable(L, -1);
     return 1;
 }
