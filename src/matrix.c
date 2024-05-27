@@ -54,29 +54,23 @@ void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest) {
 // Matrix Operations
 
 int ir_matrix_identity_lua(lua_State *L) {
-    mat4 *userdata;
-
-    if(ir_matrix_ismatrix(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_mat4_identity((float (*)[4]) userdata);
-    }
-
-    lua_pop(L, 1);
-    return 0;
+    mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
+    glm_mat4_identity((float (*)[4]) userdata);
+    return 1;
 }
 
 int ir_matrix_inverse_lua(lua_State *L) {
-    mat4 temp;
-    mat4 *userdata;
+    mat4 *input;
+    mat4 *output;
 
     if(ir_matrix_ismatrix(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_mat4_inv((float (*)[4]) userdata, (float (*)[4]) &temp);
-        glm_mat4_copy((float (*)[4]) &temp, (float (*)[4]) userdata);
+        input = lua_touserdata(L, -1);
+        lua_pop(L, 1);
+        output = lua_newuserdata(L, sizeof(mat4));
+        glm_mat4_inv((float (*)[4]) input, (float (*)[4]) output);
     }
 
-    lua_pop(L, 1);
-    return 0;
+    return 1;
 }
 
 int ir_matrix_multiply_lua(lua_State *L); // glm_mat4_mul, glm_mat4_mulv, glm_mat4_scale
@@ -86,27 +80,23 @@ int ir_matrix_peek_lua(lua_State *L);
 int ir_matrix_poke_lua(lua_State *L);
 
 int ir_matrix_transpose_lua(lua_State *L) {
-    mat4 *userdata;
+    mat4 *input;
+    mat4 *output;
 
     if(ir_matrix_ismatrix(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_mat4_transpose((float (*)[4]) userdata);
+        input = lua_touserdata(L, -1);
+        lua_pop(L, 1);
+        output = lua_newuserdata(L, sizeof(mat4));
+        glm_mat4_transpose_to((float (*)[4]) input, (float (*)[4]) output);
     }
 
-    lua_pop(L, 1);
-    return 0;
+    return 1;
 }
 
 int ir_matrix_zero_lua(lua_State *L) {
-    mat4 *userdata;
-
-    if(ir_matrix_ismatrix(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_mat4_zero((float (*)[4]) userdata);
-    }
-
-    lua_pop(L, 1);
-    return 0;
+    mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
+    glm_mat4_zero((float (*)[4]) userdata);
+    return 1;
 }
 
 // Vector Interface
@@ -177,39 +167,37 @@ int ir_vector_min_lua(lua_State *L);
 int ir_vector_multiply_lua(lua_State *L); // glm_vec4_mul, glm_vec4_scale
 
 int ir_vector_negate_lua(lua_State *L) {
-    vec4 *userdata;
+    vec4 *input;
+    vec4 *output;
 
     if(ir_vector_isvector(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_vec4_negate((float *) userdata);
+        input = lua_touserdata(L, -1);
+        lua_pop(L, 1);
+        output = lua_newuserdata(L, sizeof(vec4));
+        glm_vec4_negate_to((float *) input, (float *) output);
     }
 
-    lua_pop(L, 1);
-    return 0;
+    return 1;
 }
 
 int ir_vector_normalize_lua(lua_State *L) {
-    vec4 *userdata;
+    vec4 *input;
+    vec4 *output;
 
     if(ir_vector_isvector(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_vec4_normalize((float *) userdata);
+        input = lua_touserdata(L, -1);
+        lua_pop(L, 1);
+        output = lua_newuserdata(L, sizeof(vec4));
+        glm_vec4_normalize_to((float *) input, (float *) output);
     }
 
-    lua_pop(L, 1);
-    return 0;
+    return 1;
 }
 
 int ir_vector_one_lua(lua_State *L) {
-    vec4 *userdata;
-
-    if(ir_vector_isvector(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_vec4_one((float *) userdata);
-    }
-
-    lua_pop(L, 1);
-    return 0;
+    vec4 *userdata = lua_newuserdata(L, sizeof(vec4));
+    glm_vec4_one((float *) userdata);
+    return 1;
 }
 
 int ir_vector_peek_lua(lua_State *L);
@@ -221,13 +209,7 @@ int ir_vector_reflect_lua(lua_State *L);
 int ir_vector_subtract_lua(lua_State *L); // glm_vec4_sub, glm_vec4_subs
 
 int ir_vector_zero_lua(lua_State *L) {
-    vec4 *userdata;
-
-    if(ir_vector_isvector(L, -1)) {
-        userdata = lua_touserdata(L, -1);
-        glm_vec4_zero((float *) userdata);
-    }
-
-    lua_pop(L, 1);
-    return 0;
+    vec4 *userdata = lua_newuserdata(L, sizeof(vec4));
+    glm_vec4_zero((float *) userdata);
+    return 1;
 }
