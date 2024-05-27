@@ -11,11 +11,13 @@
 // Matrix Interface
 
 int ir_matrix_ismatrix(lua_State *L, int index);
+void ir_matrix_metatable(lua_State *L, int index);
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim);
 void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest);
 
 // Matrix Operations
 
+int ir_matrix_from_lua(lua_State *L);
 int ir_matrix_identity_lua(lua_State *L);
 int ir_matrix_inverse_lua(lua_State *L);
 int ir_matrix_multiply_lua(lua_State *L);
@@ -27,6 +29,7 @@ int ir_matrix_zero_lua(lua_State *L);
 // Vector Interface
 
 int ir_vector_isvector(lua_State *L, int index);
+void ir_vector_metatable(lua_State *L, int index);
 void ir_vector_pushvector(lua_State *L, vec4 *victim);
 void ir_vector_tovector(lua_State *L, int index, vec4 *dest);
 
@@ -37,6 +40,7 @@ int ir_vector_clamp_lua(lua_State *L);
 int ir_vector_distance_lua(lua_State *L);
 int ir_vector_divide_lua(lua_State *L);
 int ir_vector_dot_lua(lua_State *L);
+int ir_vector_from_lua(lua_State *L);
 int ir_vector_lerp_lua(lua_State *L);
 int ir_vector_magnitude_lua(lua_State *L);
 int ir_vector_max_lua(lua_State *L);
