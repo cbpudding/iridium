@@ -74,3 +74,104 @@ int ir_shader_new(
 }
 
 void ir_shader_use(ir_shader *shader) { glUseProgram(shader->program); }
+
+// Lua interface
+
+int ir_shader_isshader(lua_State *L, int index) {
+	const char *type;
+
+	if (!lua_isuserdata(L, index)) {
+		return 0;
+	}
+
+	lua_getfield(L, index, "__type");
+	if (!lua_isstring(L, -1)) {
+		lua_pop(L, 1);
+		return 0;
+	}
+
+	type = lua_tostring(L, -1);
+	if (strcmp(type, "shader")) {
+		lua_pop(L, 1);
+		return 0;
+	}
+
+	lua_pop(L, 1);
+	return 1;
+}
+
+int ir_shader_drop_lua(lua_State *L) {
+	ir_shader *shader;
+
+	if (ir_shader_isshader(L, -1)) {
+		shader = lua_touserdata(L, -1);
+		ir_shader_drop(shader);
+	}
+
+	lua_pop(L, 1);
+	return 0;
+}
+
+int ir_shader_new_lua(lua_State *L) {
+	const char *fragment;
+	size_t fragment_len;
+	ir_shader *shader;
+	const char *vertex;
+	size_t vertex_len;
+
+	if (lua_gettop(L) != 2) {
+		return 0;
+	}
+
+	if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
+		lua_pop(L, 2);
+		return 0;
+	}
+
+	fragment = lua_tostring(L, -1);
+	fragment_len = strlen(fragment);
+	vertex = lua_tostring(L, -2);
+	vertex_len = strlen(vertex);
+
+	lua_pop(L, 2);
+
+	shader = lua_newuserdata(L, sizeof(ir_shader));
+
+	if (ir_shader_new(
+			shader, vertex_len, (char *)vertex, fragment_len, (char *)fragment
+		)) {
+		lua_pop(L, 1);
+		return 0;
+	}
+
+	lua_createtable(L, 0, 1);
+
+	lua_pushcfunction(L, ir_shader_drop_lua);
+	lua_setfield(L, -2, "__gc");
+
+	lua_createtable(L, 0, 1);
+
+	lua_pushstring(L, "shader");
+	lua_setfield(L, -2, "__type");
+
+	lua_pushcfunction(L, ir_shader_use_lua);
+	lua_setfield(L, -2, "use");
+
+	lua_setfield(L, -2, "__index");
+
+	lua_setmetatable(L, -2);
+
+	return 1;
+}
+
+int ir_shader_use_lua(lua_State *L) {
+	ir_shader *shader;
+
+	if (ir_shader_isshader(L, -1)) {
+		shader = lua_touserdata(L, -1);
+		ir_shader_use(shader);
+	}
+
+	lua_pop(L, 1);
+	return 0;
+}

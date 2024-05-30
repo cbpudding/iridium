@@ -40,7 +40,7 @@ int ir_model_new(ir_model *model) {
 	luaopen_math(model->state);
 	luaopen_bit(model->state);
 
-	lua_createtable(model->state, 0, 6);
+	lua_createtable(model->state, 0, 7);
 
 	lua_pushcfunction(model->state, ir_debug_lua);
 	lua_setfield(model->state, -2, "debug");
@@ -50,6 +50,9 @@ int ir_model_new(ir_model *model) {
 
 	lua_pushcfunction(model->state, ir_info_lua);
 	lua_setfield(model->state, -2, "info");
+
+	lua_pushcfunction(model->state, ir_shader_new_lua);
+	lua_setfield(model->state, -2, "shader");
 
 	lua_pushcfunction(model->state, ir_model_time_lua);
 	lua_setfield(model->state, -2, "time");
