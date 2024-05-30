@@ -1,2 +1,2 @@
 #!/bin/sh
-zip game.zip main.lua preferences.ini
+zip game.zip main.lua user.ini

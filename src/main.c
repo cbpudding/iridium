@@ -92,17 +92,17 @@ int ir_run_opts(int argc, char *argv[], lua_State *L) {
 	return 0;
 }
 
-void ir_run_preferences_ini() {
+void ir_run_user_ini() {
 	uint8_t *buffer;
 	FILE *file;
 	PHYSFS_File *file_physfs;
 	PHYSFS_sint64 length;
 
-	if((file_physfs = PHYSFS_openRead("preferences.ini"))) {
+	if((file_physfs = PHYSFS_openRead("user.ini"))) {
 		length = PHYSFS_fileLength(file_physfs);
 		if((buffer = malloc(length))) {
 			if(PHYSFS_readBytes(file_physfs, buffer, length) == length) {
-				if((file = fopen("preferences.ini", "w"))) {
+				if((file = fopen("user.ini", "w"))) {
 					fwrite(buffer, 1, length, file);
 					fclose(file);
 				}
@@ -113,18 +113,18 @@ void ir_run_preferences_ini() {
 	}
 }
 
-int ir_run_preferences(lua_State *L) {
-	ALLEGRO_CONFIG *config = al_load_config_file("preferences.ini");
+int ir_run_user(lua_State *L) {
+	ALLEGRO_CONFIG *config = al_load_config_file("user.ini");
 	ALLEGRO_CONFIG_ENTRY *entry;
 	const char *key;
 	ALLEGRO_CONFIG_SECTION *section;
 	const char *section_name;
 
-	// If we couldn't open the file, copy the preferences file from the game and use that instead. ~ahill
-	if(!config && PHYSFS_exists("preferences.ini")) {
-		ir_info("ir_run_preferences: Preferences missing but a template exists. Copying.");
-		ir_run_preferences_ini();
-		config = al_load_config_file("preferences.ini");
+	// If we couldn't open the file, copy the user preferences file from the game and use that instead. ~ahill
+	if(!config && PHYSFS_exists("user.ini")) {
+		ir_info("ir_run_user: User preferences missing but a template exists. Copying.");
+		ir_run_user_ini();
+		config = al_load_config_file("user.ini");
 	}
 
 	lua_getglobal(L, "ir");
@@ -149,10 +149,10 @@ int ir_run_preferences(lua_State *L) {
 
 		al_destroy_config(config);
 	} else {
-		ir_warn("ir_run_preferences: \"preferences.ini\" not found. Expect strange behavior!");
+		ir_warn("ir_run_user: \"user.ini\" not found. Expect strange behavior!");
 	}
 
-	lua_setfield(L, -2, "pref");
+	lua_setfield(L, -2, "user");
 	lua_pop(L, 1);
 
 	return 0;
@@ -195,7 +195,7 @@ int ir_run(int argc, char *argv[], ir_engine *engine) {
 		return 1;
 	}
 
-	if (ir_run_preferences(engine->model.state)) {
+	if (ir_run_user(engine->model.state)) {
 		lua_pop(engine->model.state, 2);
 		return 1;
 	}
@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (PHYSFS_init(argv[0])) {
-		// Is this even needed? It messes with loading preferences.ini. ~ahill
+		// Is this even needed? It messes with loading user.ini. ~ahill
 		// al_set_physfs_file_interface();
 		if (!ir_model_new(&ENGINE.model)) {
 			if (!ir_subscription_new(&ENGINE.subs)) {

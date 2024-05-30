@@ -54,60 +54,64 @@ function irpriv.kernel(opts)
     rawset(_G, "print", ir.info)
 
     -- Interpret user binds
-    for name, line in pairs(ir.pref.binds) do
-        local tokens = {}
+    if ir.user.binds then
+        for name, line in pairs(ir.user.binds) do
+            local tokens = {}
 
-        for token in line:gmatch("%w+") do
-            table.insert(tokens, token)
-        end
+            for token in line:gmatch("%w+") do
+                table.insert(tokens, token)
+            end
 
-        if #tokens > 1 then
-            if tokens[1] == "key" then
-                if #tokens == 3 then
-                    local keycode = tonumber(tokens[2])
-                    if keycode then
-                        irpriv.bind[name] = 0
-                        if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN] then
-                            ir.internal.binds[ir.internal.EVENT_KEY_DOWN] = {}
-                        end
-                        if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] then
-                            ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] = {}
-                        end
-                        if tokens[3] == "toggle" then
-                            table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
-                                if irpriv.bind[name] == 0 then
-                                    irpriv.bind[name] = 1
-                                else
-                                    irpriv.bind[name] = 0
+            if #tokens > 1 then
+                if tokens[1] == "key" then
+                    if #tokens == 3 then
+                        local keycode = tonumber(tokens[2])
+                        if keycode then
+                            irpriv.bind[name] = 0
+                            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN] then
+                                ir.internal.binds[ir.internal.EVENT_KEY_DOWN] = {}
+                            end
+                            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] then
+                                ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] = {}
+                            end
+                            if tokens[3] == "toggle" then
+                                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                                    if irpriv.bind[name] == 0 then
+                                        irpriv.bind[name] = 1
+                                    else
+                                        irpriv.bind[name] = 0
+                                    end
+                                end)
+                            else
+                                if tokens[3] ~= "hold" then
+                                    ir.warn("ir.kernel: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
                                 end
-                            end)
+                                if not ir.internal.binds[ir.internal.EVENT_KEY_UP] then
+                                    ir.internal.binds[ir.internal.EVENT_KEY_UP] = {}
+                                end
+                                if not ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] then
+                                    ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] = {}
+                                end
+                                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                                    irpriv.bind[name] = 1
+                                end)
+                                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode], function(event)
+                                    irpriv.bind[name] = 0
+                                end)
+                            end
                         else
-                            if tokens[3] ~= "hold" then
-                                ir.warn("ir.kernel: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
-                            end
-                            if not ir.internal.binds[ir.internal.EVENT_KEY_UP] then
-                                ir.internal.binds[ir.internal.EVENT_KEY_UP] = {}
-                            end
-                            if not ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] then
-                                ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] = {}
-                            end
-                            table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
-                                irpriv.bind[name] = 1
-                            end)
-                            table.insert(ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode], function(event)
-                                irpriv.bind[name] = 0
-                            end)
+                            ir.warn("ir.kernel: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
                         end
                     else
-                        ir.warn("ir.kernel: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+                        ir.warn("ir.kernel: Invalid format for bind \"" .. name .. "\"")
                     end
                 else
-                    ir.warn("ir.kernel: Invalid format for bind \"" .. name .. "\"")
+                    ir.warn("ir.kernel: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
                 end
-            else
-                ir.warn("ir.kernel: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
             end
         end
+    else
+        ir.warn("ir.kernel: User binds not defined!")
     end
 
     ir.info("ir.kernel: Kernel started")
