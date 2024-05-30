@@ -96,15 +96,18 @@ int ir_view_render_lua(lua_State *L) {
 	size_t length = lua_objlen(L, -1);
 	float *buffer = malloc(length * sizeof(float));
 
-	for(size_t i = 0; i < length; i++) {
+	for (size_t i = 0; i < length; i++) {
 		lua_pushinteger(L, i + 1);
 		lua_gettable(L, -2);
 		buffer[i] = lua_tonumber(L, -1);
 		lua_pop(L, 1);
 	}
 
-	// TODO: Look into glBufferSubData to prevent the unnecessary reallocation of VRAM ~ahill
-	glBufferData(GL_ARRAY_BUFFER, length * sizeof(float), buffer, GL_STREAM_DRAW);
+	// TODO: Look into glBufferSubData to prevent the unnecessary reallocation
+	// of VRAM ~ahill
+	glBufferData(
+		GL_ARRAY_BUFFER, length * sizeof(float), buffer, GL_STREAM_DRAW
+	);
 	glDrawArrays(GL_TRIANGLES, 0, length / 3);
 
 	free(buffer);
@@ -116,8 +119,8 @@ int ir_view_setcamera_lua(lua_State *L) {
 	float buffer[16];
 	size_t length = lua_objlen(L, -1);
 
-	if(length == 16) {
-		for(size_t i = 0; i < 16; i++) {
+	if (length == 16) {
+		for (size_t i = 0; i < 16; i++) {
 			lua_pushinteger(L, i + 1);
 			lua_gettable(L, -2);
 			buffer[i] = lua_tonumber(L, -1);
