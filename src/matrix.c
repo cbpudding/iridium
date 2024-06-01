@@ -139,16 +139,76 @@ int ir_matrix_multiply_lua(lua_State *L) {
 		lua_pop(L, 2);
 		result = lua_newuserdata(L, sizeof(vec4));
 		glm_mat4_mulv(a, b, result);
-		ir_matrix_metatable(L, -1);
+		ir_vector_metatable(L, -1);
 		return 1;
 	} else {
 		return 0;
 	}
 }
 
-int ir_matrix_peek_lua(lua_State *L);
+int ir_matrix_peek_lua(lua_State *L) {
+	int col;
+	int row;
+	mat4 *userdata;
 
-int ir_matrix_poke_lua(lua_State *L);
+	if(lua_gettop(L) == 3) {
+		return 0;
+	}
+
+	if(!ir_matrix_ismatrix(L, -3)) {
+		return 0;
+	}
+
+	if(!lua_isnumber(L, -2)) {
+		return 0;
+	}
+
+	if(!lua_isnumber(L, -1)) {
+		return 0;
+	}
+
+	col = lua_tointeger(L, -2);
+	row = lua_tointeger(L, -1);
+	userdata = lua_touserdata(L, -3);
+
+	lua_pop(L, 3);
+	lua_pushnumber(L, *userdata[col][row]);
+	return 1;
+}
+
+int ir_matrix_poke_lua(lua_State *L) {
+	int col;
+	int row;
+	mat4 *userdata;
+
+	if(lua_gettop(L) == 4) {
+		return 0;
+	}
+
+	if(!ir_matrix_ismatrix(L, -4)) {
+		return 0;
+	}
+
+	if(!lua_isnumber(L, -3)) {
+		return 0;
+	}
+
+	if(!lua_isnumber(L, -2)) {
+		return 0;
+	}
+
+	if(!lua_isnumber(L, -1)) {
+		return 0;
+	}
+
+	col = lua_tointeger(L, -2);
+	row = lua_tointeger(L, -1);
+	userdata = lua_touserdata(L, -3);
+	*userdata[col][row] = lua_tonumber(L, -1);
+
+	lua_pop(L, 4);
+	return 1;
+}
 
 int ir_matrix_transpose_lua(lua_State *L) {
 	mat4 *input;

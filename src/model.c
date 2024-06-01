@@ -89,7 +89,7 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 40);
+	lua_createtable(model->state, 0, 48);
 
 	// Internal Functions
 
@@ -101,6 +101,30 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushcfunction(model->state, ir_resources_list_lua);
 	lua_setfield(model->state, -2, "list");
+
+	lua_pushcfunction(model->state, ir_matrix_from_lua);
+	lua_setfield(model->state, -2, "matrix_from");
+
+	lua_pushcfunction(model->state, ir_matrix_identity_lua);
+	lua_setfield(model->state, -2, "matrix_identity");
+
+	lua_pushcfunction(model->state, ir_matrix_inverse_lua);
+	lua_setfield(model->state, -2, "matrix_inverse");
+
+	lua_pushcfunction(model->state, ir_matrix_multiply_lua);
+	lua_setfield(model->state, -2, "matrix_multiply");
+
+	lua_pushcfunction(model->state, ir_matrix_peek_lua);
+	lua_setfield(model->state, -2, "matrix_peek");
+
+	lua_pushcfunction(model->state, ir_matrix_poke_lua);
+	lua_setfield(model->state, -2, "matrix_poke");
+
+	lua_pushcfunction(model->state, ir_matrix_transpose_lua);
+	lua_setfield(model->state, -2, "matrix_transpose");
+
+	lua_pushcfunction(model->state, ir_matrix_zero_lua);
+	lua_setfield(model->state, -2, "matrix_zero");
 
 	lua_pushcfunction(model->state, ir_resources_mount_lua);
 	lua_setfield(model->state, -2, "mount");
