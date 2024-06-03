@@ -4,9 +4,25 @@
 
 #include <string.h>
 
+#include "log.h"
 #include "matrix.h"
 
 // Matrix Interface
+
+void ir_matrix_init_lua(lua_State *L) {
+	lua_createtable(L, 0, 3);
+
+	lua_pushcfunction(L, ir_matrix_from_lua);
+	lua_setfield(L, -2, "from");
+
+	lua_pushcfunction(L, ir_matrix_identity_lua);
+	lua_setfield(L, -2, "identity");
+
+	lua_pushcfunction(L, ir_matrix_zero_lua);
+	lua_setfield(L, -2, "zero");
+
+	lua_setfield(L, -2, "mat");
+}
 
 int ir_matrix_ismatrix(lua_State *L, int index) {
 	const char *type;
@@ -32,12 +48,54 @@ int ir_matrix_ismatrix(lua_State *L, int index) {
 }
 
 void ir_matrix_metatable(lua_State *L, int index) {
-	lua_createtable(L, 0, 1);
-	lua_createtable(L, 0, 1);
-	lua_pushstring(L, "matrix");
-	lua_setfield(L, -2, "__type");
+	lua_createtable(L, 0, 2);
+
+	lua_pushcfunction(L, ir_matrix_metatable_index);
 	lua_setfield(L, -2, "__index");
+
+	lua_pushcfunction(L, ir_matrix_multiply_lua);
+	lua_setfield(L, -2, "__mul");
+
 	lua_setmetatable(L, index - 1);
+}
+
+int ir_matrix_metatable_index(lua_State *L) {
+	int idx;
+	const char *key;
+	mat4 *userdata;
+
+	if(!ir_matrix_ismatrix(L, -2)) {
+		return 0;
+	}
+
+	userdata = lua_touserdata(L, -2);
+
+	if(lua_isstring(L, -1)) {
+		key = lua_tostring(L, -1);
+		lua_pop(L, 2);
+		ir_debug("ir_matrix_metatable_index: key %s", key);
+		if(!strcmp(key, "__metatable")) {
+			lua_pushstring(L, "My God, what are you doing?");
+			return 1;
+		} else if(!strcmp(key, "__type")) {
+			lua_pushstring(L, "matrix");
+			return 1;
+		} else if(!strcmp(key, "inverse")) {
+			lua_pushcfunction(L, ir_matrix_inverse_lua);
+			return 1;
+		} else if(!strcmp(key, "transpose")) {
+			lua_pushcfunction(L, ir_matrix_transpose_lua);
+			return 1;
+		}
+	} else if(lua_isnumber(L, -1)) {
+		idx = lua_tointeger(L, -1);
+		lua_pop(L, 2);
+		ir_debug("ir_matrix_metatable_index: index %u", idx);
+		if(idx >= 1 && idx <= 4) {
+			// ...
+		}
+	}
+	return 0;
 }
 
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
@@ -234,6 +292,12 @@ int ir_matrix_zero_lua(lua_State *L) {
 }
 
 // Vector Interface
+
+void ir_vector_init_lua(lua_State *L) {
+	lua_createtable(L, 0, 0);
+	// ...
+	lua_setfield(L, -2, "vec");
+}
 
 int ir_vector_isvector(lua_State *L, int index) {
 	const char *type;

@@ -4,6 +4,7 @@
 
 #include "log.h"
 #include "main.h"
+#include "matrix.h"
 #include "view.h"
 
 // When will #embed be a thing? ~ahill
@@ -116,19 +117,15 @@ int ir_view_render_lua(lua_State *L) {
 }
 
 int ir_view_setcamera_lua(lua_State *L) {
-	float buffer[16];
-	size_t length = lua_objlen(L, -1);
+	mat4 *camera;
 
-	if (length == 16) {
-		for (size_t i = 0; i < 16; i++) {
-			lua_pushinteger(L, i + 1);
-			lua_gettable(L, -2);
-			buffer[i] = lua_tonumber(L, -1);
-			lua_pop(L, 1);
-		}
-
-		glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, buffer);
+	if(!ir_matrix_ismatrix(L, -1)) {
+		return 0;
 	}
+
+	camera = lua_touserdata(L, -1);
+
+	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (GLfloat *) camera);
 
 	lua_pop(L, 1);
 	return 0;

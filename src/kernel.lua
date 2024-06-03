@@ -160,12 +160,7 @@ function irpriv.kernel(opts)
             local stage = ir.view()
 
             -- If no explicit camera has been defined, use an identity matrix. ~ahill
-            stage.camera = stage.camera or {
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            }
+            stage.camera = stage.camera or ir.mat.identity()
             ir.internal.setcamera(stage.camera)
 
             -- ...
@@ -254,12 +249,6 @@ end
 ir.fs = {}
 
 setmetatable(ir.fs, fs_meta(""))
-
--- Matrix/Vector Math
-
-ir.mat = {}
-
-ir.vec = {}
 
 -- Listeners
 
