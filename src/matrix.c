@@ -27,7 +27,13 @@ void ir_matrix_init_lua(lua_State *L) {
 int ir_matrix_ismatrix(lua_State *L, int index) {
 	const char *type;
 
+	if (lua_gettop(L) != 1) {
+		lua_pop(L, lua_gettop(L));
+		return 0;
+	}
+
 	if (!lua_isuserdata(L, index)) {
+		lua_pop(L, 1);
 		return 0;
 	}
 
@@ -100,7 +106,9 @@ int ir_matrix_metatable_index(lua_State *L) {
 
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
 	mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
-	glm_mat4_copy(*victim, *userdata);
+	// No hardware accelerated magic here. We can't guarantee that memory
+	// allocated by Lua is aligned! ~ahill
+	memcpy(userdata, victim, sizeof(mat4));
 	ir_matrix_metatable(L, -1);
 }
 
@@ -109,7 +117,8 @@ void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest) {
 
 	if (ir_matrix_ismatrix(L, index)) {
 		userdata = lua_touserdata(L, index);
-		glm_mat4_copy(*userdata, *dest);
+		// No alignment in Lua D: ~ahill
+		memcpy(dest, userdata, sizeof(mat4));
 	}
 }
 
@@ -146,9 +155,9 @@ int ir_matrix_from_lua(lua_State *L) {
 }
 
 int ir_matrix_identity_lua(lua_State *L) {
-	mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
-	glm_mat4_identity(*userdata);
-	ir_matrix_metatable(L, -1);
+	mat4 victim;
+	glm_mat4_identity(victim);
+	ir_matrix_pushmatrix(L, &victim);
 	return 1;
 }
 
