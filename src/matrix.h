@@ -23,8 +23,6 @@ int ir_matrix_from_lua(lua_State *L);
 int ir_matrix_identity_lua(lua_State *L);
 int ir_matrix_inverse_lua(lua_State *L);
 int ir_matrix_multiply_lua(lua_State *L);
-int ir_matrix_peek_lua(lua_State *L);
-int ir_matrix_poke_lua(lua_State *L);
 int ir_matrix_transpose_lua(lua_State *L);
 int ir_matrix_zero_lua(lua_State *L);
 
@@ -52,8 +50,6 @@ int ir_vector_multiply_lua(lua_State *L);
 int ir_vector_negate_lua(lua_State *L);
 int ir_vector_normalize_lua(lua_State *L);
 int ir_vector_one_lua(lua_State *L);
-int ir_vector_peek_lua(lua_State *L);
-int ir_vector_poke_lua(lua_State *L);
 int ir_vector_reflect_lua(lua_State *L);
 int ir_vector_subtract_lua(lua_State *L);
 int ir_vector_zero_lua(lua_State *L);

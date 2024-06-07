@@ -66,16 +66,16 @@ void ir_matrix_metatable(lua_State *L, int index) {
 }
 
 int ir_matrix_metatable_index(lua_State *L) {
-	int idx;
 	const char *key;
-	mat4 *userdata;
+	mat4 userdata;
 
 	if(!ir_matrix_ismatrix(L, -2)) {
 		return 0;
 	}
 
-	userdata = lua_touserdata(L, -2);
+	ir_matrix_tomatrix(L, -2, &userdata);
 
+	// TODO: Include the ability to directly manipulate the matrix from Lua ~ahill
 	if(lua_isstring(L, -1)) {
 		key = lua_tostring(L, -1);
 		lua_pop(L, 2);
@@ -92,13 +92,6 @@ int ir_matrix_metatable_index(lua_State *L) {
 		} else if(!strcmp(key, "transpose")) {
 			lua_pushcfunction(L, ir_matrix_transpose_lua);
 			return 1;
-		}
-	} else if(lua_isnumber(L, -1)) {
-		idx = lua_tointeger(L, -1);
-		lua_pop(L, 2);
-		ir_debug("ir_matrix_metatable_index: index %u", idx);
-		if(idx >= 1 && idx <= 4) {
-			// ...
 		}
 	}
 	return 0;
@@ -126,7 +119,7 @@ void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest) {
 
 int ir_matrix_from_lua(lua_State *L) {
 	float temp;
-	mat4 *result;
+	mat4 result;
 
 	if (!lua_istable(L, -1)) {
 		return 0;
@@ -136,8 +129,6 @@ int ir_matrix_from_lua(lua_State *L) {
 		return 0;
 	}
 
-	result = lua_newuserdata(L, sizeof(mat4));
-
 	for (int i = 1; i <= 16; i++) {
 		lua_rawgeti(L, -2, i);
 		if (!lua_isnumber(L, -1)) {
@@ -146,10 +137,10 @@ int ir_matrix_from_lua(lua_State *L) {
 		}
 		temp = lua_tonumber(L, -1);
 		lua_pop(L, 1);
-		*result[(i - 1) % 4][(i - 1) / 4] = temp;
+		result[(i - 1) % 4][(i - 1) / 4] = temp;
 	}
 
-	ir_matrix_metatable(L, -1);
+	ir_matrix_pushmatrix(L, &result);
 
 	return 1;
 }
@@ -162,15 +153,14 @@ int ir_matrix_identity_lua(lua_State *L) {
 }
 
 int ir_matrix_inverse_lua(lua_State *L) {
-	mat4 *input;
-	mat4 *output;
+	mat4 input;
+	mat4 output;
 
 	if (ir_matrix_ismatrix(L, -1)) {
-		input = lua_touserdata(L, -1);
+		ir_matrix_tomatrix(L, -1, &input);
 		lua_pop(L, 1);
-		output = lua_newuserdata(L, sizeof(mat4));
-		glm_mat4_inv(*input, *output);
-		ir_matrix_metatable(L, -1);
+		glm_mat4_inv(input, output);
+		ir_matrix_pushmatrix(L, &output);
 		return 1;
 	}
 
@@ -180,9 +170,11 @@ int ir_matrix_inverse_lua(lua_State *L) {
 int ir_matrix_multiply_lua(lua_State *L) {
 	// This function makes the assumption that the first argument is always a
 	// mat4. If that is not the case, it *will* return nil! ~ahill
-	void *a;
-	void *b;
-	void *result;
+	mat4 a;
+	mat4 b_mat;
+	vec4 b_vec;
+	mat4 result_mat;
+	vec4 result_vec;
 
 	if (lua_gettop(L) != 2) {
 		return 0;
@@ -192,101 +184,34 @@ int ir_matrix_multiply_lua(lua_State *L) {
 		return 0;
 	}
 
-	a = lua_touserdata(L, -2);
+	ir_matrix_tomatrix(L, -2, &a);
 
 	if (ir_matrix_ismatrix(L, -1)) {
-		b = lua_touserdata(L, -1);
+		ir_matrix_tomatrix(L, -1, &b_mat);
 		lua_pop(L, 2);
-		result = lua_newuserdata(L, sizeof(mat4));
-		glm_mat4_mul(a, b, result);
-		ir_matrix_metatable(L, -1);
+		glm_mat4_mul(a, b_mat, result_mat);
+		ir_matrix_pushmatrix(L, &result_mat);
 		return 1;
 	} else if (ir_vector_isvector(L, -1)) {
-		b = lua_touserdata(L, -1);
+		ir_vector_tovector(L, -1, &b_vec);
 		lua_pop(L, 2);
-		result = lua_newuserdata(L, sizeof(vec4));
-		glm_mat4_mulv(a, b, result);
-		ir_vector_metatable(L, -1);
+		glm_mat4_mulv(a, b_vec, result_vec);
+		ir_vector_pushvector(L, &result_vec);
 		return 1;
 	} else {
 		return 0;
 	}
 }
 
-int ir_matrix_peek_lua(lua_State *L) {
-	int col;
-	int row;
-	mat4 *userdata;
-
-	if(lua_gettop(L) == 3) {
-		return 0;
-	}
-
-	if(!ir_matrix_ismatrix(L, -3)) {
-		return 0;
-	}
-
-	if(!lua_isnumber(L, -2)) {
-		return 0;
-	}
-
-	if(!lua_isnumber(L, -1)) {
-		return 0;
-	}
-
-	col = lua_tointeger(L, -2);
-	row = lua_tointeger(L, -1);
-	userdata = lua_touserdata(L, -3);
-
-	lua_pop(L, 3);
-	lua_pushnumber(L, *userdata[col][row]);
-	return 1;
-}
-
-int ir_matrix_poke_lua(lua_State *L) {
-	int col;
-	int row;
-	mat4 *userdata;
-
-	if(lua_gettop(L) == 4) {
-		return 0;
-	}
-
-	if(!ir_matrix_ismatrix(L, -4)) {
-		return 0;
-	}
-
-	if(!lua_isnumber(L, -3)) {
-		return 0;
-	}
-
-	if(!lua_isnumber(L, -2)) {
-		return 0;
-	}
-
-	if(!lua_isnumber(L, -1)) {
-		return 0;
-	}
-
-	col = lua_tointeger(L, -2);
-	row = lua_tointeger(L, -1);
-	userdata = lua_touserdata(L, -3);
-	*userdata[col][row] = lua_tonumber(L, -1);
-
-	lua_pop(L, 4);
-	return 1;
-}
-
 int ir_matrix_transpose_lua(lua_State *L) {
-	mat4 *input;
-	mat4 *output;
+	mat4 input;
+	mat4 output;
 
 	if (ir_matrix_ismatrix(L, -1)) {
-		input = lua_touserdata(L, -1);
+		ir_matrix_tomatrix(L, -1, &input);
 		lua_pop(L, 1);
-		output = lua_newuserdata(L, sizeof(mat4));
-		glm_mat4_transpose_to(*input, *output);
-		ir_matrix_metatable(L, -1);
+		glm_mat4_transpose_to(input, output);
+		ir_matrix_pushmatrix(L, &output);
 		return 1;
 	}
 
@@ -294,9 +219,9 @@ int ir_matrix_transpose_lua(lua_State *L) {
 }
 
 int ir_matrix_zero_lua(lua_State *L) {
-	mat4 *userdata = lua_newuserdata(L, sizeof(mat4));
-	glm_mat4_zero(*userdata);
-	ir_matrix_metatable(L, -1);
+	mat4 userdata;
+	glm_mat4_zero(userdata);
+	ir_matrix_pushmatrix(L, &userdata);
 	return 1;
 }
 
@@ -342,7 +267,8 @@ void ir_vector_metatable(lua_State *L, int index) {
 
 void ir_vector_pushvector(lua_State *L, vec4 *victim) {
 	vec4 *userdata = lua_newuserdata(L, sizeof(vec4));
-	glm_vec4_copy((float *)victim, (float *)userdata);
+	// More memory alignment issues D:< ~ahill
+	memcpy(userdata, victim, sizeof(vec4));
 	ir_vector_metatable(L, -1);
 }
 
@@ -351,7 +277,8 @@ void ir_vector_tovector(lua_State *L, int index, vec4 *dest) {
 
 	if (ir_matrix_ismatrix(L, index)) {
 		userdata = lua_touserdata(L, index);
-		glm_vec4_copy((float *)userdata, (float *)dest);
+		// Performance is going to take a hit from this... ~ahill
+		memcpy(dest, userdata, sizeof(vec4));
 	}
 }
 
@@ -417,10 +344,6 @@ int ir_vector_one_lua(lua_State *L) {
 	ir_vector_metatable(L, -1);
 	return 1;
 }
-
-int ir_vector_peek_lua(lua_State *L);
-
-int ir_vector_poke_lua(lua_State *L);
 
 int ir_vector_reflect_lua(lua_State *L);
 
