@@ -117,15 +117,15 @@ int ir_view_render_lua(lua_State *L) {
 }
 
 int ir_view_setcamera_lua(lua_State *L) {
-	mat4 *camera;
+	mat4 camera;
 
 	if(!ir_matrix_ismatrix(L, -1)) {
 		return 0;
 	}
 
-	camera = lua_touserdata(L, -1);
+	ir_matrix_tomatrix(L, -1, &camera);
 
-	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (GLfloat *) camera);
+	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (float *) camera);
 
 	lua_pop(L, 1);
 	return 0;
