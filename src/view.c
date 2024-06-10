@@ -31,7 +31,7 @@ int ir_view_new(ir_view *view) {
 	al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
 	al_set_new_window_title("Iridium");
 
-	view->display = al_create_display(1920, 1080);
+	view->display = al_create_display(1680, 1050);
 	if (!view->display) {
 		ir_error("ir_view_new: Failed to create display");
 		return 1;
@@ -117,15 +117,15 @@ int ir_view_render_lua(lua_State *L) {
 }
 
 int ir_view_setcamera_lua(lua_State *L) {
-	mat4 camera;
+	mat4 *camera;
 
 	if(!ir_matrix_ismatrix(L, -1)) {
 		return 0;
 	}
 
-	ir_matrix_tomatrix(L, -1, &camera);
+	camera = ir_matrix_tomatrix(L, -1);
 
-	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (float *) camera);
+	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (float *) *camera);
 
 	lua_pop(L, 1);
 	return 0;
