@@ -12,12 +12,12 @@
 
 void ir_matrix_init_lua(lua_State *L);
 int ir_matrix_ismatrix(lua_State *L, int index);
-int ir_matrix_metatable_index(lua_State *L);
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim);
-void ir_matrix_tomatrix(lua_State *L, int index, mat4 *dest);
+mat4 *ir_matrix_tomatrix(lua_State *L, int index);
 
 // Matrix Operations
 
+int ir_matrix_free_lua(lua_State *L);
 int ir_matrix_from_lua(lua_State *L);
 int ir_matrix_identity_lua(lua_State *L);
 int ir_matrix_index_lua(lua_State *L);
