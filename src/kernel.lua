@@ -281,6 +281,22 @@ function ir.listener.merge(listeners)
     return merged
 end
 
+-- Trigger Functions
+
+ir.trigger = {}
+
+function ir.trigger.under(threshold)
+    return function(v)
+        return v < threshold
+    end
+end
+
+function ir.trigger.over(threshold)
+    return function(v)
+        return v > threshold
+    end
+end
+
 -- Camera Functions
 
 ir.camera = {}
