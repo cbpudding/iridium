@@ -73,6 +73,14 @@ int ir_view_new(ir_view *view) {
 	return 0;
 }
 
+int ir_view_aspect_ratio_lua(lua_State *L) {
+	int height = al_get_display_height(ENGINE.view.display);
+	int width = al_get_display_width(ENGINE.view.display);
+	float ratio = (float)width / (float)height;
+	lua_pushnumber(L, ratio);
+	return 1;
+}
+
 int ir_view_clear_lua(lua_State *L) {
 	// We don't actually use the Lua state in this case, it's just here to match
 	// the function signature for Lua. ~ahill

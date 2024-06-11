@@ -93,9 +93,12 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 40);
+	lua_createtable(model->state, 0, 41);
 
 	// Internal Functions
+
+	lua_pushcfunction(model->state, ir_view_aspect_ratio_lua);
+	lua_setfield(model->state, -2, "aspect_ratio");
 
 	lua_pushcfunction(model->state, ir_view_clear_lua);
 	lua_setfield(model->state, -2, "clear");
