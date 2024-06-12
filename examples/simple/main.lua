@@ -21,7 +21,7 @@ end
 -- Display a simple triangle to verify that everything works
 function ir.view()
     return {
-        camera = ir.camera.perspective(ir.internal.aspect_ratio(), 90, 0.125, 64)
+        camera = ir.camera.perspective(ir.viewport.ratio(), 90, 0.125, 64)
         (function(stage)
             return {
                 0.0, 0.5, 0.0,

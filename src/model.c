@@ -93,18 +93,21 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 41);
+	lua_createtable(model->state, 0, 43);
 
 	// Internal Functions
-
-	lua_pushcfunction(model->state, ir_view_aspect_ratio_lua);
-	lua_setfield(model->state, -2, "aspect_ratio");
 
 	lua_pushcfunction(model->state, ir_view_clear_lua);
 	lua_setfield(model->state, -2, "clear");
 
 	lua_pushcfunction(model->state, ir_resources_fetch_lua);
 	lua_setfield(model->state, -2, "fetch");
+
+	lua_pushcfunction(model->state, ir_view_fullscreen_lua);
+	lua_setfield(model->state, -2, "fullscreen");
+
+	lua_pushcfunction(model->state, ir_view_height_lua);
+	lua_setfield(model->state, -2, "height");
 
 	lua_pushcfunction(model->state, ir_resources_list_lua);
 	lua_setfield(model->state, -2, "list");
@@ -126,6 +129,9 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushcfunction(model->state, ir_resources_umount_lua);
 	lua_setfield(model->state, -2, "umount");
+
+	lua_pushcfunction(model->state, ir_view_width_lua);
+	lua_setfield(model->state, -2, "width");
 
 	// Internal Constants
 

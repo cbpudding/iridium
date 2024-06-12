@@ -22,7 +22,7 @@ void ir_view_drop(ir_view *view) {
 }
 
 int ir_view_new(ir_view *view) {
-	al_set_new_display_flags(ALLEGRO_FULLSCREEN | ALLEGRO_OPENGL);
+	al_set_new_display_flags(ALLEGRO_OPENGL);
 	al_set_new_display_option(ALLEGRO_OPENGL_MAJOR_VERSION, 2, ALLEGRO_REQUIRE);
 	al_set_new_display_option(ALLEGRO_OPENGL_MINOR_VERSION, 0, ALLEGRO_REQUIRE);
 	al_set_new_display_option(
@@ -31,7 +31,7 @@ int ir_view_new(ir_view *view) {
 	al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
 	al_set_new_window_title("Iridium");
 
-	view->display = al_create_display(1680, 1050);
+	view->display = al_create_display(640, 480);
 	if (!view->display) {
 		ir_error("ir_view_new: Failed to create display");
 		return 1;
@@ -73,14 +73,6 @@ int ir_view_new(ir_view *view) {
 	return 0;
 }
 
-int ir_view_aspect_ratio_lua(lua_State *L) {
-	int height = al_get_display_height(ENGINE.view.display);
-	int width = al_get_display_width(ENGINE.view.display);
-	float ratio = (float)width / (float)height;
-	lua_pushnumber(L, ratio);
-	return 1;
-}
-
 int ir_view_clear_lua(lua_State *L) {
 	// We don't actually use the Lua state in this case, it's just here to match
 	// the function signature for Lua. ~ahill
@@ -89,6 +81,35 @@ int ir_view_clear_lua(lua_State *L) {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	return 0;
+}
+
+int ir_view_fullscreen_lua(lua_State *L) {
+	bool state = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	al_set_display_flag(ENGINE.view.display, ALLEGRO_FULLSCREEN_WINDOW, state);
+	return 0;
+}
+
+int ir_view_height_lua(lua_State *L) {
+	int height;
+	int width;
+
+	if(lua_gettop(L) > 1) {
+		lua_pop(L, lua_gettop(L));
+		return 0;
+	}
+
+	if(lua_gettop(L) == 0) {
+		height = al_get_display_height(ENGINE.view.display);
+		lua_pushnumber(L, height);
+		return 1;
+	} else {
+		height = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+		width = al_get_display_width(ENGINE.view.display);
+		al_resize_display(ENGINE.view.display, width, height);
+		return 0;
+	}
 }
 
 int ir_view_present_lua(lua_State *L) {
@@ -137,4 +158,26 @@ int ir_view_setcamera_lua(lua_State *L) {
 
 	lua_pop(L, 1);
 	return 0;
+}
+
+int ir_view_width_lua(lua_State *L) {
+	int height;
+	int width;
+
+	if(lua_gettop(L) > 1) {
+		lua_pop(L, lua_gettop(L));
+		return 0;
+	}
+
+	if(lua_gettop(L) == 0) {
+		width = al_get_display_width(ENGINE.view.display);
+		lua_pushnumber(L, width);
+		return 1;
+	} else {
+		width = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+		height = al_get_display_height(ENGINE.view.display);
+		al_resize_display(ENGINE.view.display, width, height);
+		return 0;
+	}
 }

@@ -25,6 +25,26 @@ function irpriv.kernel(opts)
 
     ir.info("ir.kernel: Framerate set to " .. tostring(1 / framerate) .. "Hz")
 
+    if opts.fullscreen then
+        ir.internal.fullscreen(true)
+    else
+        ir.internal.fullscreen(false)
+    end
+
+    if opts.height then
+        local height = tonumber(opts.height)
+        if height then
+            ir.internal.height(height)
+        end
+    end
+
+    if opts.width then
+        local width = tonumber(opts.width)
+        if width then
+            ir.internal.width(width)
+        end
+    end
+
     local function command(cmd)
         local cmds = {
             [ir.cmd.HALT] = function()
@@ -295,6 +315,22 @@ function ir.trigger.over(threshold)
     return function(v)
         return v > threshold
     end
+end
+
+-- Viewport Functions
+
+ir.viewport = {}
+
+function ir.viewport.height()
+    return ir.internal.height()
+end
+
+function ir.viewport.ratio()
+    return ir.viewport.width() / ir.viewport.height()
+end
+
+function ir.viewport.width()
+    return ir.internal.width()
 end
 
 -- Camera Functions

@@ -25,10 +25,12 @@ typedef struct {
 void ir_view_drop(ir_view *view);
 int ir_view_new(ir_view *view);
 
-int ir_view_aspect_ratio_lua(lua_State *L);
 int ir_view_clear_lua(lua_State *L);
+int ir_view_fullscreen_lua(lua_State *L);
+int ir_view_height_lua(lua_State *L);
 int ir_view_present_lua(lua_State *L);
 int ir_view_render_lua(lua_State *L);
 int ir_view_setcamera_lua(lua_State *L);
+int ir_view_width_lua(lua_State *L);
 
 #endif
