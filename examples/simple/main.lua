@@ -2,7 +2,9 @@
 
 -- This function is called with any command line arguments that may have been passed to the engine
 function ir.init(opts)
-    return ir.cmd.none()
+    return ir.cmd.texturemap{
+        ir.fs["test.png"]
+    }
 end
 
 -- Once the input level for the quit bind makes it past the threshold, send the "stop" message
@@ -24,9 +26,9 @@ function ir.view()
         camera = ir.camera.perspective(ir.viewport.ratio(), 90, 0.125, 64),
         (function(stage)
             return {
-                0.0, 0.5, 0.0,
-                0.5, -0.5, 0.0,
-                -0.5, -0.5, 0.0
+                0.0, 0.5, 0.0, 0, 0.5, 0.0,
+                0.5, -0.5, 0.0, 0, 1.0, 1.0,
+                -0.5, -0.5, 0.0, 0, 0.0, 1.0
             }
         end)
     }

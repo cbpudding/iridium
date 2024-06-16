@@ -63,12 +63,19 @@ int ir_view_new(ir_view *view) {
 	ir_shader_use(&view->shader);
 
 	view->position = glGetAttribLocation(view->shader.program, "position");
-	glVertexAttribPointer(view->position, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(view->position, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
 	glEnableVertexAttribArray(view->position);
 
-	view->camera = glGetUniformLocation(view->shader.program, "camera");
+	view->texcoord = glGetAttribLocation(view->shader.program, "texcoord");
+	glVertexAttribPointer(view->texcoord, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(4 * sizeof(float)));
+	glEnableVertexAttribArray(view->texcoord);
 
-	// ...
+	view->texture_id = glGetAttribLocation(view->shader.program, "textureId");
+	glVertexAttribPointer(view->texture_id, 1, GL_UNSIGNED_INT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+	glEnableVertexAttribArray(view->texture_id);
+
+	view->camera = glGetUniformLocation(view->shader.program, "camera");
+	view->textures = glGetUniformLocation(view->shader.program, "textures");
 
 	return 0;
 }
@@ -157,6 +164,31 @@ int ir_view_setcamera_lua(lua_State *L) {
 	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (float *) *camera);
 
 	lua_pop(L, 1);
+	return 0;
+}
+
+int ir_view_texturemap_lua(lua_State *L) {
+	size_t length;
+
+	if(lua_gettop(L) != 1) {
+		lua_pop(L, lua_gettop(L));
+		return 0;
+	}
+
+	if(!lua_istable(L, -1)) {
+		lua_pop(L, 1);
+		return 0;
+	}
+
+	length = lua_objlen(L, -1);
+	for(size_t i = 0; i < length; i++) {
+		// TODO: Load textures from their raw form and upload them to OpenGL
+	}
+
+	// ...
+
+	lua_pop(L, 1);
+
 	return 0;
 }
 

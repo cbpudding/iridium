@@ -1,2 +1,2 @@
 #!/bin/sh
-zip game.zip main.lua user.ini
+zip game.zip main.lua test.png user.ini

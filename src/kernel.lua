@@ -14,6 +14,9 @@ irpriv.cmd = {
     end,
     halt = function()
         return {1}
+    end,
+    texturemap = function(map)
+        return {2, map}
     end
 }
 
@@ -54,6 +57,10 @@ function irpriv.kernel(opts)
             -- ir.cmd.halt
             [1] = function()
                 running = false
+            end,
+            -- ir.cmd.texturemap
+            [2] = function()
+                ir.internal.texturemap(cmd[2])
             end
         }
         if cmds[cmd[1]] and type(cmds[cmd[1]]) == "function" then

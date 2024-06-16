@@ -93,7 +93,7 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 43);
+	lua_createtable(model->state, 0, 44);
 
 	// Internal Functions
 
@@ -126,6 +126,9 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushcfunction(model->state, ir_view_setcamera_lua);
 	lua_setfield(model->state, -2, "setcamera");
+
+	lua_pushcfunction(model->state, ir_view_texturemap_lua);
+	lua_setfield(model->state, -2, "texturemap");
 
 	lua_pushcfunction(model->state, ir_resources_umount_lua);
 	lua_setfield(model->state, -2, "umount");
