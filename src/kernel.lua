@@ -9,8 +9,12 @@ local irpriv = {}
 irpriv.bind = {}
 
 irpriv.cmd = {
-    NONE = 0,
-    HALT = 1
+    none = function()
+        return {0}
+    end,
+    halt = function()
+        return {1}
+    end
 }
 
 -- "Take me with you! I'm the one man who knows everything!"
@@ -47,13 +51,14 @@ function irpriv.kernel(opts)
 
     local function command(cmd)
         local cmds = {
-            [ir.cmd.HALT] = function()
+            -- ir.cmd.halt
+            [1] = function()
                 running = false
             end
         }
-        if cmds[cmd] and type(cmds[cmd]) == "function" then
-            cmds[cmd]()
-        elseif cmd ~= ir.cmd.NONE then
+        if cmds[cmd[1]] and type(cmds[cmd[1]]) == "function" then
+            cmds[cmd[1]]()
+        elseif cmd[1] ~= 0 then
             ir.error("ir.kernel: Invalid command received: " .. tostring(cmd))
         end
     end

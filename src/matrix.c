@@ -98,16 +98,23 @@ int ir_matrix_from_lua(lua_State *L) {
     // NOTE: For potential windows support we'd need _aligned_malloc instead ~FabricatorZayac
     mat4 *result = MAT4_ALLOC();
 
+	if (lua_gettop(L) == 1) {
+		lua_pop(L, lua_gettop(L));
+		return 0;
+	}
+
 	if (!lua_istable(L, -1)) {
+		lua_pop(L, 1);
 		return 0;
 	}
 
 	if (lua_objlen(L, -1) != 16) {
+		lua_pop(L, 1);
 		return 0;
 	}
 
 	for (int i = 1; i <= 16; i++) {
-		lua_rawgeti(L, -2, i);
+		lua_rawgeti(L, -1, i);
 		if (!lua_isnumber(L, -1)) {
 			lua_pop(L, 2);
 			return 0;
@@ -116,6 +123,8 @@ int ir_matrix_from_lua(lua_State *L) {
 		lua_pop(L, 1);
 		*result[(i - 1) % 4][(i - 1) / 4] = temp;
 	}
+
+	lua_pop(L, 1);
 
 	ir_matrix_pushmatrix(L, result);
 
