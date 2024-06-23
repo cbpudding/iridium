@@ -12,6 +12,7 @@
 #include <allegro5/allegro_opengl.h>
 #include <GL/glext.h>
 
+#include "lua.h"
 #include "shader.h"
 
 typedef struct {
@@ -21,6 +22,7 @@ typedef struct {
 	ir_shader shader;
 	GLint texcoord;
 	GLint texture_id;
+    GLuint texturemap;
 	GLint textures;
 	GLuint vbo;
 } ir_view;

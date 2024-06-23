@@ -2,9 +2,7 @@
 
 -- This function is called with any command line arguments that may have been passed to the engine
 function ir.init(opts)
-    return ir.cmd.texturemap{
-        ir.fs["test.png"]
-    }
+  return ir.cmd.texturemap(ir.fs["test.png"])
 end
 
 -- Once the input level for the quit bind makes it past the threshold, send the "stop" message
