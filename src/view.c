@@ -10,7 +10,6 @@
 #include <stb_image.h>
 
 #include "log.h"
-#include "lua.h"
 #include "main.h"
 #include "matrix.h"
 #include "view.h"
