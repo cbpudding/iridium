@@ -2,7 +2,7 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-add_requires("allegro", "cglm", "luajit", "physfs")
+add_requires("allegro", "cglm", "luajit", "physfs", "stb")
 add_rules("mode.debug", "mode.release")
 
 -- This only exists because ISO/IEC 9899:2024 has not been standardized yet. ~ahill
@@ -19,7 +19,7 @@ target("iridium")
     set_kind("binary")
     set_languages("clatest")
     set_warnings("everything")
-    add_packages("allegro", "cglm", "luajit", "physfs")
+    add_packages("allegro", "cglm", "luajit", "physfs", "stb")
     if is_plat("windows") or is_plat("mingw") then
         add_syslinks("opengl32")
     elseif is_plat("linux") then

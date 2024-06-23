@@ -2,6 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <allegro5/allegro_opengl.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_PSD // fuck you adobe ~FabricatorZayac
+#define STBI_NO_STDIO
+#include <stb_image.h>
+
 #include "log.h"
 #include "main.h"
 #include "matrix.h"
@@ -13,6 +20,7 @@
 
 void ir_view_drop(ir_view *view) {
 	// ...
+    glDeleteTextures(1, &view->texturemap);
 	ir_shader_drop(&view->shader);
 	glDeleteBuffers(1, &view->vbo);
 	if (al_is_audio_installed()) {
@@ -41,6 +49,7 @@ int ir_view_new(ir_view *view) {
 		ir_warn("ir_view_new: Failed to initialize the audio subsystem");
 	}
 
+    glEnable(GL_TEXTURE_2D_ARRAY_EXT);
 	glGenBuffers(1, &view->vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, view->vbo);
 
@@ -76,6 +85,16 @@ int ir_view_new(ir_view *view) {
 
 	view->camera = glGetUniformLocation(view->shader.program, "camera");
 	view->textures = glGetUniformLocation(view->shader.program, "textures");
+
+    glGenTextures(1, &view->texturemap);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, view->texturemap);
+
+    // TODO: Configurable filtering ~FabricatorZayac
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	return 0;
 }
@@ -168,28 +187,55 @@ int ir_view_setcamera_lua(lua_State *L) {
 }
 
 int ir_view_texturemap_lua(lua_State *L) {
-	size_t length;
+    const unsigned char *buffer;
+    const unsigned char *data;
+    int height;
+    size_t len;
+    int width;
 
-	if(lua_gettop(L) != 1) {
-		lua_pop(L, lua_gettop(L));
-		return 0;
-	}
+    if (lua_gettop(L) != 1) {
+        ir_error(
+                "ir_view_texturemap_lua: 1 argument expected, %d received",
+                lua_gettop(L)
+        );
+        lua_pop(L, lua_gettop(L));
 
-	if(!lua_istable(L, -1)) {
-		lua_pop(L, 1);
-		return 0;
-	}
+        lua_pushboolean(L, false);
+        lua_pushstring(L, "Expected 1 argument");
 
-	length = lua_objlen(L, -1);
-	for(size_t i = 0; i < length; i++) {
-		// TODO: Load textures from their raw form and upload them to OpenGL
-	}
+        return 2;
+    }
 
-	// ...
+    if (!lua_isstring(L, -1)) {
+        ir_error(
+                "ir_view_texturemap_lua: string expected, %s received",
+                lua_typename(L, lua_type(L, -1))
+        );
+        lua_pop(L, 1);
 
-	lua_pop(L, 1);
+        lua_pushboolean(L, false);
+        lua_pushstring(L, "Expected string (filebuffer)");
 
-	return 0;
+        return 2;
+    }
+
+    buffer = (const unsigned char *)lua_tolstring(L, -1, &len);
+    lua_pop(L, 1);
+    data = stbi_load_from_memory(
+            buffer,
+            len,
+            &width,
+            &height,
+            NULL,
+            STBI_rgb_alpha
+    );
+
+    // TODO: Mipmap??? ~FabricatorZayac
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, width, height / width);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, width, width, height / width, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    lua_pushboolean(L, true);
+  	return 1;
 }
 
 int ir_view_width_lua(lua_State *L) {
