@@ -37,7 +37,7 @@ int ir_resources_fetch_lua(lua_State *L) {
 								// Null terminator because PhysicsFS doesn't
 								// care about text data! ~ahill
 								*(buffer + length) = 0;
-								lua_pushstring(L, (const char *)buffer);
+								lua_pushlstring(L, (const char *)buffer, length);
 								// Will this cause issues? ~ahill
 								free(buffer);
 								PHYSFS_close(file);

@@ -1,6 +1,5 @@
 The engine isn't complete yet. Here's what needs to be done:
 
-- Expand rendering to high-level constructs such as textures and models
 - Clean up and document the publicly-facing Lua API for the engine
 - Clean up bind parsing/handling
 - Add mouse/joystick support

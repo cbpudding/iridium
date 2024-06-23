@@ -79,7 +79,7 @@ int ir_view_new(ir_view *view) {
 	glVertexAttribPointer(view->texcoord, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(4 * sizeof(float)));
 	glEnableVertexAttribArray(view->texcoord);
 
-	view->texture_id = glGetAttribLocation(view->shader.program, "textureId");
+	view->texture_id = glGetAttribLocation(view->shader.program, "textureid");
 	glVertexAttribPointer(view->texture_id, 1, GL_UNSIGNED_INT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
 	glEnableVertexAttribArray(view->texture_id);
 
@@ -219,20 +219,35 @@ int ir_view_texturemap_lua(lua_State *L) {
         return 2;
     }
 
-    buffer = (const unsigned char *)lua_tolstring(L, -1, &len);
+    buffer = (const unsigned char *) lua_tolstring(L, -1, &len);
     lua_pop(L, 1);
+
+	ir_debug("ir_view_texturemap_lua: %d bytes passed from Lua", len);
+
     data = stbi_load_from_memory(
-            buffer,
-            len,
-            &width,
-            &height,
-            NULL,
-            STBI_rgb_alpha
+        buffer,
+        len,
+        &width,
+        &height,
+        NULL,
+        STBI_rgb_alpha
     );
 
+	if(!data) {
+		ir_error("ir_view_texturemap_lua: Failed to decode image: %s", stbi_failure_reason());
+
+		lua_pushboolean(L, false);
+		lua_pushstring(L, stbi_failure_reason());
+
+		return 2;
+	}
+
     // TODO: Mipmap??? ~FabricatorZayac
+	// TODO: Is glTexStorage3D even required if we're using glTexImage3D? ~ahill
     glTexStorage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, width, height / width);
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, width, width, height / width, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB8, width, width, height / width, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+	stbi_image_free((void *) data);
 
     lua_pushboolean(L, true);
   	return 1;
