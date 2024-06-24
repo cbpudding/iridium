@@ -6,15 +6,18 @@
 #define SUBSCRIPTION_H
 
 #include <allegro5/events.h>
+#include <allegro5/timer.h>
 #include <luajit-2.1/lua.h>
 
 typedef struct {
+	ALLEGRO_TIMER *frame_timer;
 	ALLEGRO_EVENT_QUEUE *queue;
 } ir_subscription;
 
 void ir_subscription_drop(ir_subscription *subs);
 int ir_subscription_new(ir_subscription *subs);
 
+int ir_subscription_epoch_lua(lua_State *L);
 int ir_subscription_poll_lua(lua_State *L);
 
 #endif

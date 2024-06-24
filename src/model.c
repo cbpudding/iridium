@@ -7,6 +7,7 @@
 #include <physfs.h>
 
 #include "log.h"
+#include "main.h"
 #include "matrix.h"
 #include "model.h"
 #include "resources.h"
@@ -93,12 +94,15 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 44);
+	lua_createtable(model->state, 0, 46);
 
 	// Internal Functions
 
 	lua_pushcfunction(model->state, ir_view_clear_lua);
 	lua_setfield(model->state, -2, "clear");
+
+	lua_pushcfunction(model->state, ir_subscription_epoch_lua);
+	lua_setfield(model->state, -2, "epoch");
 
 	lua_pushcfunction(model->state, ir_resources_fetch_lua);
 	lua_setfield(model->state, -2, "fetch");
@@ -209,6 +213,9 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_RESUME_DRAWING);
 	lua_setfield(model->state, -2, "EVENT_DISPLAY_RESUME_DRAWING");
+
+	lua_pushinteger(model->state, ALLEGRO_EVENT_TIMER);
+	lua_setfield(model->state, -2, "EVENT_TIMER");
 
 	lua_pushinteger(model->state, ALLEGRO_EVENT_TOUCH_BEGIN);
 	lua_setfield(model->state, -2, "EVENT_TOUCH_BEGIN");
