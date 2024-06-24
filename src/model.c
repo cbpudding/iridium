@@ -233,3 +233,22 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_setfield(model->state, -2, "internal");
 }
+
+int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...) {
+    va_list args1, args2;
+    va_start(args1, fmt);
+    va_copy(args2, args1);
+
+    size_t bufsize = vsnprintf(NULL, 0, fmt, args1);
+    va_end(args1);
+
+    char errstr[bufsize];
+    vsnprintf(errstr, bufsize, fmt, args2);
+
+    va_end(args2);
+
+    lua_pushboolean(L, false);
+    lua_pushstring(L, errstr);
+
+    return 2;
+}
