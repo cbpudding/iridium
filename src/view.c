@@ -222,8 +222,6 @@ int ir_view_texturemap_lua(lua_State *L) {
     buffer = (const unsigned char *) lua_tolstring(L, -1, &len);
     lua_pop(L, 1);
 
-	ir_debug("ir_view_texturemap_lua: %d bytes passed from Lua", len);
-
     data = stbi_load_from_memory(
         buffer,
         len,

@@ -22,7 +22,6 @@ irpriv.cmd = {
 
 -- "Take me with you! I'm the one man who knows everything!"
 function irpriv.kernel(opts)
-    local epoch = ir.time()
     -- 60Hz is a good guess, but isn't accurate for every system (including my
     -- own). Allegro doesn't have the ability to retrieve the refresh rate in a
     -- cross-platform manner so this will have to do for now. ~ahill
@@ -68,13 +67,6 @@ function irpriv.kernel(opts)
         elseif cmd[1] ~= 0 then
             ir.error("ir.kernel: Invalid command received: " .. tostring(cmd))
         end
-    end
-
-    local function time()
-        -- We have an epoch in the kernel that is subtracted from the engine's
-        -- time so we don't get stuck rendering frames at the very beginning.
-        -- ~ahill
-        return ir.time() - epoch
     end
 
     -- Remove unsafe functions
@@ -164,29 +156,14 @@ function irpriv.kernel(opts)
         end
     end
 
+    -- Start the internal framerate timer ~ahill
+    ir.internal.frametimer(framerate)
+
     while running do
         local event = ir.internal.poll()
-        if event and ir.internal.binds[event.type] then
-            if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_UP then
-                if ir.internal.binds[event.type][event.keycode] then
-                    for _, update in ipairs(ir.internal.binds[event.type][event.keycode]) do
-                        update(event)
-                    end
-                end
-            else
-                ir.warn("ir.kernel: Unhandled event type " .. event.type)
-            end
-            for _, listener in ipairs(ir.subscriptions) do
-                local msg = listener()
-                if msg then
-                    command(ir.update(msg))
-                    if not running then
-                        break
-                    end
-                end
-            end
-        end
-        if time() / framerate > frames then
+        -- This will work for now, but we will need to check the source when we
+        -- start to deal with multiple timers later on. ~ahill
+        if event.type == ir.internal.EVENT_TIMER then
             ir.internal.clear()
 
             local stage = ir.view()
@@ -221,6 +198,25 @@ function irpriv.kernel(opts)
 
             ir.internal.present()
             frames = frames + 1
+        elseif ir.internal.binds[event.type] then
+            if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_UP then
+                if ir.internal.binds[event.type][event.keycode] then
+                    for _, update in ipairs(ir.internal.binds[event.type][event.keycode]) do
+                        update(event)
+                    end
+                end
+            else
+                ir.warn("ir.kernel: Unhandled event type " .. event.type)
+            end
+            for _, listener in ipairs(ir.subscriptions) do
+                local msg = listener()
+                if msg then
+                    command(ir.update(msg))
+                    if not running then
+                        break
+                    end
+                end
+            end
         end
     end
 
