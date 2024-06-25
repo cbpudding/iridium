@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "matrix.h"
+#include "model.h"
 
 #define MAT4_ALLOC() aligned_alloc(alignof(mat4), sizeof(mat4))
 
@@ -93,31 +94,35 @@ int ir_matrix_free_lua(lua_State *L) {
 }
 
 int ir_matrix_from_lua(lua_State *L) {
+    int argc;
 	float temp;
 	// mat4 result;
     // NOTE: For potential windows support we'd need _aligned_malloc instead ~FabricatorZayac
     mat4 *result = MAT4_ALLOC();
 
-	if (lua_gettop(L) == 1) {
-		lua_pop(L, lua_gettop(L));
-		return 0;
+    argc = lua_gettop(L);
+	if (argc != 1) {
+		lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
 	}
 
 	if (!lua_istable(L, -1)) {
+        const char *typename = lua_typename(L, lua_type(L, -1));
 		lua_pop(L, 1);
-		return 0;
+        return ir_push_error_lua(L, "Expected table, provided %s", typename);
 	}
 
 	if (lua_objlen(L, -1) != 16) {
 		lua_pop(L, 1);
-		return 0;
+        return ir_push_error_lua(L, "Invalid matrix dimensions");
 	}
 
 	for (int i = 1; i <= 16; i++) {
 		lua_rawgeti(L, -1, i);
 		if (!lua_isnumber(L, -1)) {
+            const char *typename = lua_typename(L, lua_type(L, -1));
 			lua_pop(L, 2);
-			return 0;
+            return ir_push_error_lua(L, "Expected number, provided %s", typename);
 		}
 		temp = lua_tonumber(L, -1);
 		lua_pop(L, 1);
@@ -141,6 +146,12 @@ int ir_matrix_identity_lua(lua_State *L) {
 int ir_matrix_index_lua(lua_State *L) {
 	const char *key;
 
+    // I think this should not be done like this and should be implemented
+    // through the kernel internals, to avoid cascading strcmp in favor of
+    // hash tables.
+    //
+    // I'm gonna leave it like this for now tho ~FabricatorZayac
+
 	// TODO: Include the ability to directly manipulate the matrix from Lua ~ahill
 	if(lua_isstring(L, -1)) {
 		key = lua_tostring(L, -1);
@@ -163,61 +174,91 @@ int ir_matrix_index_lua(lua_State *L) {
 }
 
 int ir_matrix_inverse_lua(lua_State *L) {
+    int argc;
 	mat4 *input;
-	mat4 *output = MAT4_ALLOC();
+	mat4 *output;
 
-	if (ir_matrix_ismatrix(L, -1)) {
-		input = ir_matrix_tomatrix(L, -1);
+    argc = lua_gettop(L);
+    if (argc != 1) {
+        lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
+    }
+
+	if (!ir_matrix_ismatrix(L, -1)) {
+        // We might want to make a custom typename function that would
+        // additionally check the __type field in userdata ~FabricatorZayac
+        const char *typename = lua_typename(L, lua_type(L, -1));
 		lua_pop(L, 1);
-		glm_mat4_inv(*input, *output);
-		ir_matrix_pushmatrix(L, output);
-		return 1;
+        return ir_push_error_lua(L, "Expected matrix, provided %s", typename);
 	}
 
-	return 0;
+    input = ir_matrix_tomatrix(L, -1);
+    lua_pop(L, 1);
+
+    output = MAT4_ALLOC();
+    glm_mat4_inv(*input, *output);
+    ir_matrix_pushmatrix(L, output);
+
+    return 1;
 }
 
 int ir_matrix_multiply_lua(lua_State *L) {
-	// This function makes the assumption that the first argument is always a
-	// mat4. If that is not the case, it *will* return nil! ~ahill
 	mat4 *a;
+    int argc;
 	mat4 *b;
-	mat4 *result = MAT4_ALLOC();
+	mat4 *result;
 
-	if (lua_gettop(L) != 2) {
-		return 0;
+    argc = lua_gettop(L);
+	if (argc != 2) {
+        lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected 2 arguments, provided %d", argc); 
 	}
 
 	if (!ir_matrix_ismatrix(L, -2)) {
-		return 0;
+        const char *typename = lua_typename(L, lua_type(L, -2));
+		lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected matrix, provided %s", typename);
 	}
+    if (!ir_matrix_ismatrix(L, -1)) {
+        const char *typename = lua_typename(L, lua_type(L, -1));
+		lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected matrix, provided %s", typename);
+    }
 
 	a = ir_matrix_tomatrix(L, -2);
+    b = ir_matrix_tomatrix(L, -1);
+    lua_pop(L, 2);
 
-	if (ir_matrix_ismatrix(L, -1)) {
-		b = ir_matrix_tomatrix(L, -1);
-		lua_pop(L, 2);
-		glm_mat4_mul(*a, *b, *result);
-		ir_matrix_pushmatrix(L, result);
-		return 1;
-	} else {
-		return 0;
-	}
+    result = MAT4_ALLOC();
+    glm_mat4_mul(*a, *b, *result);
+    ir_matrix_pushmatrix(L, result);
+    return 1;
 }
 
 int ir_matrix_transpose_lua(lua_State *L) {
+    int argc;
 	mat4 *input;
-	mat4 *output = MAT4_ALLOC();
+	mat4 *output;
 
-	if (ir_matrix_ismatrix(L, -1)) {
-		input = ir_matrix_tomatrix(L, -1);
-		lua_pop(L, 1);
-		glm_mat4_transpose_to(*input, *output);
-		ir_matrix_pushmatrix(L, output);
-		return 1;
-	}
+    argc = lua_gettop(L);
+    if (argc != 1) {
+        lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
+    }
 
-	return 0;
+    if (!ir_matrix_ismatrix(L, -1)) {
+        const char *typename = lua_typename(L, lua_type(L, -1));
+		lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected matrix, provided %s", typename);
+    }
+
+    input = ir_matrix_tomatrix(L, -1);
+    lua_pop(L, 1);
+
+    output = MAT4_ALLOC();
+    glm_mat4_transpose_to(*input, *output);
+    ir_matrix_pushmatrix(L, output);
+    return 1;
 }
 
 int ir_matrix_zero_lua(lua_State *L) {

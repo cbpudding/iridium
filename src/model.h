@@ -22,5 +22,6 @@ typedef struct {
 
 void ir_model_drop(ir_model *model);
 int ir_model_new(ir_model *model);
+int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...);
 
 #endif
