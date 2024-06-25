@@ -56,8 +56,8 @@ int ir_subscription_new(ir_subscription *subs) {
 		}
 	}
 
-	// If ir.internal.epoch isn't called, expect your game to have the framerate
-	// of a slide presentation. ~ahill
+	// If ir.internal.frametimer isn't called, expect your game to have the
+	// framerate of a slideshow. ~ahill
 	subs->frame_timer = al_create_timer(1.0);
 	source = al_get_timer_event_source(subs->frame_timer);
 	al_register_event_source(subs->queue, source);
@@ -65,10 +65,10 @@ int ir_subscription_new(ir_subscription *subs) {
 	return 0;
 }
 
-int ir_subscription_epoch_lua(lua_State *L) {
+int ir_subscription_frametimer_lua(lua_State *L) {
 	float framerate = lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	al_set_timer_speed(ENGINE.subs.frame_timer, 1.0 / framerate);
+	al_set_timer_speed(ENGINE.subs.frame_timer, framerate);
 	al_start_timer(ENGINE.subs.frame_timer);
 	return 0;
 }
@@ -165,6 +165,14 @@ int ir_subscription_poll_lua(lua_State *L) {
 
 		lua_pushinteger(L, event.mouse.w);
 		lua_setfield(L, -2, "w");
+		break;
+	case ALLEGRO_EVENT_TIMER:
+		lua_pushinteger(L, event.timer.count);
+		lua_setfield(L, -2, "count");
+
+		// Pointers are just numbers... ~ahill
+		lua_pushinteger(L, (intmax_t) event.timer.source);
+		lua_setfield(L, -2, "source");
 		break;
 	default:
 		ir_warn(

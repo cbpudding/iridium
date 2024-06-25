@@ -101,8 +101,8 @@ void ir_model_new_internal(ir_model *model) {
 	lua_pushcfunction(model->state, ir_view_clear_lua);
 	lua_setfield(model->state, -2, "clear");
 
-	lua_pushcfunction(model->state, ir_subscription_epoch_lua);
-	lua_setfield(model->state, -2, "epoch");
+	lua_pushcfunction(model->state, ir_subscription_frametimer_lua);
+	lua_setfield(model->state, -2, "frametimer");
 
 	lua_pushcfunction(model->state, ir_resources_fetch_lua);
 	lua_setfield(model->state, -2, "fetch");

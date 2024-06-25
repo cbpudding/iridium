@@ -17,7 +17,7 @@ typedef struct {
 void ir_subscription_drop(ir_subscription *subs);
 int ir_subscription_new(ir_subscription *subs);
 
-int ir_subscription_epoch_lua(lua_State *L);
+int ir_subscription_frametimer_lua(lua_State *L);
 int ir_subscription_poll_lua(lua_State *L);
 
 #endif

@@ -157,12 +157,10 @@ function irpriv.kernel(opts)
     end
 
     -- Start the internal framerate timer ~ahill
-    ir.internal.epoch(framerate)
-    ir.debug("Target: " .. ir.internal.EVENT_TIMER)
+    ir.internal.frametimer(framerate)
 
     while running do
         local event = ir.internal.poll()
-        ir.debug(event.type)
         -- This will work for now, but we will need to check the source when we
         -- start to deal with multiple timers later on. ~ahill
         if event.type == ir.internal.EVENT_TIMER then
