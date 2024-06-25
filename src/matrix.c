@@ -8,6 +8,7 @@
 #include "matrix.h"
 #include "model.h"
 
+// NOTE: For potential windows support we'd need _aligned_malloc instead ~FabricatorZayac
 #define MAT4_ALLOC() aligned_alloc(alignof(mat4), sizeof(mat4))
 
 // Matrix Interface
@@ -57,10 +58,9 @@ int ir_matrix_ismatrix(lua_State *L, int index) {
 }
 
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
+	// We store the pointer to the matrix rather than the matrix itself to
+	// guarantee memory alignment. ~ahill
 	mat4 **userdata = lua_newuserdata(L, sizeof(mat4 *));
-	// No hardware accelerated magic here. We can't guarantee that memory
-	// allocated by Lua is aligned! ~ahill
-	// memcpy(userdata, victim, sizeof(mat4));
     *userdata = victim;
 
 	lua_createtable(L, 0, 3);
@@ -94,20 +94,17 @@ int ir_matrix_free_lua(lua_State *L) {
 }
 
 int ir_matrix_from_lua(lua_State *L) {
-    int argc;
-	float temp;
-	// mat4 result;
-    // NOTE: For potential windows support we'd need _aligned_malloc instead ~FabricatorZayac
-    mat4 *result = MAT4_ALLOC();
+    int argc = lua_gettop(L);
+	const char *typename;
+    mat4 *result;
 
-    argc = lua_gettop(L);
 	if (argc != 1) {
 		lua_pop(L, argc);
         return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
 	}
 
 	if (!lua_istable(L, -1)) {
-        const char *typename = lua_typename(L, lua_type(L, -1));
+        typename = lua_typename(L, lua_type(L, -1));
 		lua_pop(L, 1);
         return ir_push_error_lua(L, "Expected table, provided %s", typename);
 	}
@@ -117,16 +114,19 @@ int ir_matrix_from_lua(lua_State *L) {
         return ir_push_error_lua(L, "Invalid matrix dimensions");
 	}
 
-	for (int i = 1; i <= 16; i++) {
-		lua_rawgeti(L, -1, i);
+	result = MAT4_ALLOC();
+
+	for (int i = 0; i < 16; i++) {
+		// Lua expects indices to start with one but C likes indices that start
+		// at zero. ~ahill
+		lua_rawgeti(L, -1, i + 1);
 		if (!lua_isnumber(L, -1)) {
-            const char *typename = lua_typename(L, lua_type(L, -1));
+            typename = lua_typename(L, lua_type(L, -1));
 			lua_pop(L, 2);
             return ir_push_error_lua(L, "Expected number, provided %s", typename);
 		}
-		temp = lua_tonumber(L, -1);
+		(*result)[i % 4][i / 4] = lua_tonumber(L, -1);
 		lua_pop(L, 1);
-		*result[(i - 1) % 4][(i - 1) / 4] = temp;
 	}
 
 	lua_pop(L, 1);

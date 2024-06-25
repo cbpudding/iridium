@@ -164,7 +164,7 @@ int ir_view_render_lua(lua_State *L) {
 	glBufferData(
 		GL_ARRAY_BUFFER, length * sizeof(float), buffer, GL_STREAM_DRAW
 	);
-	glDrawArrays(GL_TRIANGLES, 0, length / 3);
+	glDrawArrays(GL_TRIANGLES, 0, length / 6);
 
 	free(buffer);
 	lua_pop(L, 1);
