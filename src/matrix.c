@@ -28,33 +28,8 @@ void ir_matrix_init_lua(lua_State *L) {
 	lua_setfield(L, -2, "mat");
 }
 
-int ir_matrix_ismatrix(lua_State *L, int index) {
-	const char *type;
-
-	if (lua_gettop(L) != 1) {
-		lua_pop(L, lua_gettop(L));
-		return 0;
-	}
-
-	if (!lua_isuserdata(L, index)) {
-		lua_pop(L, 1);
-		return 0;
-	}
-
-	lua_getfield(L, index, "__type");
-	if (!lua_isstring(L, -1)) {
-		lua_pop(L, 1);
-		return 0;
-	}
-
-	type = lua_tostring(L, -1);
-	if (strcmp(type, "matrix")) {
-		lua_pop(L, 1);
-		return 0;
-	}
-
-	lua_pop(L, 1);
-	return 1;
+bool ir_matrix_ismatrix(lua_State *L, int index) {
+	return !strcmp(ir_totypename(L, index), "matrix");
 }
 
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
