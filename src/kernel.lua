@@ -17,8 +17,73 @@ irpriv.cmd = {
     end,
     texturemap = function(map)
         return {2, map}
+    end,
+    multiple = function(list)
+        return {3, list}
     end
 }
+
+-- Format: key <keycode> <hold|toggle>
+local function parse_key_bind(name, tokens)
+    if #tokens == 3 then
+        local keycode = tonumber(tokens[2])
+        if keycode then
+            irpriv.bind[name] = 0
+            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN] then
+                ir.internal.binds[ir.internal.EVENT_KEY_DOWN] = {}
+            end
+            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] then
+                ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] = {}
+            end
+            if tokens[3] == "toggle" then
+                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                    if irpriv.bind[name] == 0 then
+                        irpriv.bind[name] = 1
+                    else
+                        irpriv.bind[name] = 0
+                    end
+                end)
+            else
+                if tokens[3] ~= "hold" then
+                    ir.warn("ir.kernel: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
+                end
+                if not ir.internal.binds[ir.internal.EVENT_KEY_UP] then
+                    ir.internal.binds[ir.internal.EVENT_KEY_UP] = {}
+                end
+                if not ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] then
+                    ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] = {}
+                end
+                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                    irpriv.bind[name] = 1
+                end)
+                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode], function(event)
+                    irpriv.bind[name] = 0
+                end)
+            end
+        else
+            ir.warn("ir.kernel: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+        end
+    else
+        ir.warn("ir.kernel: Invalid format for bind \"" .. name .. "\"")
+    end
+end
+
+-- Format: mouse ...
+local function parse_mouse_bind(name, tokens)
+    -- ...
+end
+
+local function parse_bind(name, tokens)
+    if #tokens > 1 then
+        if tokens[1] == "key" then
+            parse_key_bind(name, tokens)
+        elseif tokens[1] == "mouse" then
+            parse_mouse_bind(name, tokens)
+        else
+            ir.warn("ir.kernel: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
+        end
+    end
+end
 
 -- "Take me with you! I'm the one man who knows everything!"
 function irpriv.kernel(opts)
@@ -28,6 +93,32 @@ function irpriv.kernel(opts)
     local framerate = 1 / (tonumber(opts.framerate) or 60)
     local frames = 0
     local running = true
+
+    -- This function needs to stay here because it's within the closure that
+    -- controls the "running" value. ~ahill
+    local function command(cmd)
+        local cmds = {
+            -- ir.cmd.halt
+            [1] = function()
+                running = false
+            end,
+            -- ir.cmd.texturemap
+            [2] = function()
+                ir.internal.texturemap(cmd[2])
+            end,
+            -- ir.cmd.multiple
+            [3] = function()
+                for _, v in ipairs(cmd[2]) do
+                    command(v)
+                end
+            end
+        }
+        if cmds[cmd[1]] and type(cmds[cmd[1]]) == "function" then
+            cmds[cmd[1]]()
+        elseif cmd[1] ~= 0 then
+            ir.error("ir.kernel: Invalid command received: " .. tostring(cmd))
+        end
+    end
 
     ir.info("ir.kernel: Framerate set to " .. tostring(1 / framerate) .. "Hz")
 
@@ -51,24 +142,6 @@ function irpriv.kernel(opts)
         end
     end
 
-    local function command(cmd)
-        local cmds = {
-            -- ir.cmd.halt
-            [1] = function()
-                running = false
-            end,
-            -- ir.cmd.texturemap
-            [2] = function()
-                ir.internal.texturemap(cmd[2])
-            end
-        }
-        if cmds[cmd[1]] and type(cmds[cmd[1]]) == "function" then
-            cmds[cmd[1]]()
-        elseif cmd[1] ~= 0 then
-            ir.error("ir.kernel: Invalid command received: " .. tostring(cmd))
-        end
-    end
-
     -- Remove unsafe functions
     rawset(_G, "dofile", nil)
     rawset(_G, "load", nil)
@@ -86,53 +159,7 @@ function irpriv.kernel(opts)
                 table.insert(tokens, token)
             end
 
-            if #tokens > 1 then
-                if tokens[1] == "key" then
-                    if #tokens == 3 then
-                        local keycode = tonumber(tokens[2])
-                        if keycode then
-                            irpriv.bind[name] = 0
-                            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN] then
-                                ir.internal.binds[ir.internal.EVENT_KEY_DOWN] = {}
-                            end
-                            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] then
-                                ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] = {}
-                            end
-                            if tokens[3] == "toggle" then
-                                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
-                                    if irpriv.bind[name] == 0 then
-                                        irpriv.bind[name] = 1
-                                    else
-                                        irpriv.bind[name] = 0
-                                    end
-                                end)
-                            else
-                                if tokens[3] ~= "hold" then
-                                    ir.warn("ir.kernel: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
-                                end
-                                if not ir.internal.binds[ir.internal.EVENT_KEY_UP] then
-                                    ir.internal.binds[ir.internal.EVENT_KEY_UP] = {}
-                                end
-                                if not ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] then
-                                    ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] = {}
-                                end
-                                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
-                                    irpriv.bind[name] = 1
-                                end)
-                                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode], function(event)
-                                    irpriv.bind[name] = 0
-                                end)
-                            end
-                        else
-                            ir.warn("ir.kernel: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
-                        end
-                    else
-                        ir.warn("ir.kernel: Invalid format for bind \"" .. name .. "\"")
-                    end
-                else
-                    ir.warn("ir.kernel: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
-                end
-            end
+            parse_bind(name, tokens)
         end
     else
         ir.warn("ir.kernel: User binds not defined!")
