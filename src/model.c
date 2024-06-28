@@ -7,7 +7,6 @@
 #include <physfs.h>
 
 #include "log.h"
-#include "main.h"
 #include "matrix.h"
 #include "model.h"
 #include "resources.h"
@@ -68,6 +67,9 @@ int ir_model_new(ir_model *model) {
 	ir_vector_init_lua(model->state);
 
 	lua_setglobal(model->state, "ir");
+
+    lua_pushcfunction(model->state, ir_typename_lua);
+    lua_setglobal(model->state, "type");
 
 	luaL_loadbuffer(
 		model->state,
@@ -258,4 +260,44 @@ int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...) {
     lua_pushstring(L, errstr);
 
     return 2;
+}
+
+const char *ir_totypename(lua_State *L, int idx) {
+    int lua_typeid;
+    const char *typename;
+
+    lua_typeid = lua_type(L, idx);
+    switch (lua_typeid) {
+    case LUA_TTABLE:
+    case LUA_TUSERDATA:
+        lua_getfield(L, -1, "__type");
+        if (lua_isstring(L, -1)) {
+            typename = lua_tostring(L, -1);
+        } else {
+            typename = lua_typename(L, lua_typeid);
+        }
+        lua_pop(L, 1);
+        break;
+    default:
+        typename = lua_typename(L, lua_typeid);
+        break;
+    }
+
+    return typename;
+}
+
+int ir_typename_lua(lua_State *L) {
+    int argc;
+    const char *typename;
+
+    argc = lua_gettop(L);
+    if (argc != 1) {
+        lua_pop(L, argc);
+        return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
+    }
+
+    typename = ir_totypename(L, -1);
+    lua_pop(L, 1);
+    lua_pushstring(L, typename);
+    return 1;
 }
