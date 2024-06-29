@@ -11,7 +11,7 @@
 // Matrix Interface
 
 void ir_matrix_init_lua(lua_State *L);
-int ir_matrix_ismatrix(lua_State *L, int index);
+bool ir_matrix_ismatrix(lua_State *L, int index);
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim);
 mat4 *ir_matrix_tomatrix(lua_State *L, int index);
 
