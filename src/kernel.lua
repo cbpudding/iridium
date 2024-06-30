@@ -23,20 +23,24 @@ irpriv.cmd = {
     end
 }
 
+local function add_event_listener(type, index, handler)
+    if not ir.internal.binds[type] then
+        ir.internal.binds[type] = {}
+    end
+    if not ir.internal.binds[type][index] then
+        ir.internal.binds[type][index] = {}
+    end
+    table.insert(ir.internal.binds[type][index], handler)
+end
+
 -- Format: key <keycode> <hold|toggle>
 local function parse_key_bind(name, tokens)
     if #tokens == 3 then
         local keycode = tonumber(tokens[2])
         if keycode then
             irpriv.bind[name] = 0
-            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN] then
-                ir.internal.binds[ir.internal.EVENT_KEY_DOWN] = {}
-            end
-            if not ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] then
-                ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode] = {}
-            end
             if tokens[3] == "toggle" then
-                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                add_event_listener(ir.internal.EVENT_KEY_DOWN, keycode, function(event)
                     if irpriv.bind[name] == 0 then
                         irpriv.bind[name] = 1
                     else
@@ -45,32 +49,70 @@ local function parse_key_bind(name, tokens)
                 end)
             else
                 if tokens[3] ~= "hold" then
-                    ir.warn("ir.kernel: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
+                    ir.warn("parse_key_bind: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
                 end
-                if not ir.internal.binds[ir.internal.EVENT_KEY_UP] then
-                    ir.internal.binds[ir.internal.EVENT_KEY_UP] = {}
-                end
-                if not ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] then
-                    ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode] = {}
-                end
-                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_DOWN][keycode], function(event)
+                add_event_listener(ir.internal.EVENT_KEY_DOWN, keycode, function(event)
                     irpriv.bind[name] = 1
                 end)
-                table.insert(ir.internal.binds[ir.internal.EVENT_KEY_UP][keycode], function(event)
+                add_event_listener(ir.internal.EVENT_KEY_UP, keycode, function(event)
                     irpriv.bind[name] = 0
                 end)
             end
         else
-            ir.warn("ir.kernel: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+            ir.warn("parse_key_bind: Invalid keycode \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
         end
     else
-        ir.warn("ir.kernel: Invalid format for bind \"" .. name .. "\"")
+        ir.warn("parse_key_bind: Invalid format for bind \"" .. name .. "\"")
     end
 end
 
--- Format: mouse ...
-local function parse_mouse_bind(name, tokens)
+-- Format: mouse axis <w|x|y|z> <locked|normal> [inverse]
+local function parse_mouse_axis_bind(name, tokens)
     -- ...
+end
+
+-- Format: mouse button <code> <hold|toggle>
+local function parse_mouse_button_bind(name, tokens)
+    local button = tonumber(tokens[3])
+    if button then
+        irpriv.bind[name] = 0
+        if tokens[4] == "toggle" then
+            add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_DOWN, button, function(event)
+                if irpriv.bind[name] == 0 then
+                    irpriv.bind[name] = 1
+                else
+                    irpriv.bind[name] = 0
+                end
+            end)
+        else
+            if tokens[4] ~= "hold" then
+                ir.warn("parse_mouse_button_bind: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
+            end
+            add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_DOWN, button, function(event)
+                irpriv.bind[name] = 1
+            end)
+            add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_UP, button, function(event)
+                irpriv.bind[name] = 0
+            end)
+        end
+    else
+        ir.warn("parse_mouse_button_bind: Invalid code \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+    end
+end
+
+-- Format: mouse <axis|button> ...
+local function parse_mouse_bind(name, tokens)
+    if #tokens >= 4 then
+        if tokens[2] == "axis" then
+            parse_mouse_axis_bind(name, tokens)
+        elseif tokens[2] == "button" then
+            parse_mouse_button_bind(name, tokens)
+        else
+            ir.warn("parse_mouse_bind: Invalid subtype \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+        end
+    else
+        ir.warn("parse_mouse_bind: Invalid format for bind \"" .. name .. "\"")
+    end
 end
 
 local function parse_bind(name, tokens)
@@ -80,7 +122,7 @@ local function parse_bind(name, tokens)
         elseif tokens[1] == "mouse" then
             parse_mouse_bind(name, tokens)
         else
-            ir.warn("ir.kernel: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
+            ir.warn("parse_bind: Invalid type \"" .. tokens[1] .. "\" on bind \"" .. name .. "\"")
         end
     end
 end
@@ -199,8 +241,6 @@ function irpriv.kernel(opts)
             stage.camera = stage.camera or ir.mat.identity()
             ir.internal.setcamera(stage.camera)
 
-            -- ...
-
             local vertices = {}
 
             -- In this case, "tess" is short for tessellation. I just didn't want to write "tessellation" a lot. ~ahill
@@ -208,8 +248,8 @@ function irpriv.kernel(opts)
                 if type(tess) == "function" then
                     -- Lua passes by reference so this should be fine... right? ~ahill
                     local verts = tess(stage)
-                    -- 3 axes * 3 vertices/triangle = 9 values/triangle ~ahill
-                    if type(verts) == "table" and #verts % 9 == 0 then
+                    -- (3 axes + 1 texture ID + 2 texcoords) * 3 vertices/triangle = 18 values/triangle ~ahill
+                    if type(verts) == "table" and #verts % 18 == 0 then
                         for _, n in ipairs(verts) do
                             table.insert(vertices, n)
                         end
@@ -226,21 +266,27 @@ function irpriv.kernel(opts)
             ir.internal.present()
             frames = frames + 1
         elseif ir.internal.binds[event.type] then
+            local index = nil
             if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_UP then
-                if ir.internal.binds[event.type][event.keycode] then
-                    for _, update in ipairs(ir.internal.binds[event.type][event.keycode]) do
-                        update(event)
-                    end
-                end
+                index = event.keycode
+            elseif event.type == ir.internal.EVENT_MOUSE_BUTTON_DOWN or event.type == ir.internal.EVENT_MOUSE_BUTTON_UP then
+                index = event.button
             else
                 ir.warn("ir.kernel: Unhandled event type " .. event.type)
             end
-            for _, listener in ipairs(ir.subscriptions) do
-                local msg = listener()
-                if msg then
-                    command(ir.update(msg))
-                    if not running then
-                        break
+            if index then
+                if ir.internal.binds[event.type][index] then
+                    for _, update in ipairs(ir.internal.binds[event.type][index]) do
+                        update(event)
+                    end
+                end
+                for _, listener in ipairs(ir.subscriptions) do
+                    local msg = listener()
+                    if msg then
+                        command(ir.update(msg))
+                        if not running then
+                            break
+                        end
                     end
                 end
             end
