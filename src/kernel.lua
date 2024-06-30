@@ -27,10 +27,15 @@ local function add_event_listener(type, index, handler)
     if not ir.internal.binds[type] then
         ir.internal.binds[type] = {}
     end
-    if not ir.internal.binds[type][index] then
-        ir.internal.binds[type][index] = {}
+    if index then
+        if not ir.internal.binds[type][index] then
+            ir.internal.binds[type][index] = {}
+        end
+        table.insert(ir.internal.binds[type][index], handler)
+    else
+        -- If index is nil, then the event type doesn't really have a "selector". ~ahill
+        table.insert(ir.internal.binds[type], handler)
     end
-    table.insert(ir.internal.binds[type][index], handler)
 end
 
 -- Format: key <keycode> <hold|toggle>
@@ -73,40 +78,57 @@ end
 
 -- Format: mouse button <code> <hold|toggle>
 local function parse_mouse_button_bind(name, tokens)
-    local button = tonumber(tokens[3])
-    if button then
-        irpriv.bind[name] = 0
-        if tokens[4] == "toggle" then
-            add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_DOWN, button, function(event)
-                if irpriv.bind[name] == 0 then
-                    irpriv.bind[name] = 1
-                else
-                    irpriv.bind[name] = 0
+    if #tokens == 4 then
+        local button = tonumber(tokens[3])
+        if button then
+            irpriv.bind[name] = 0
+            if tokens[4] == "toggle" then
+                add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_DOWN, button, function(event)
+                    if irpriv.bind[name] == 0 then
+                        irpriv.bind[name] = 1
+                    else
+                        irpriv.bind[name] = 0
+                    end
+                end)
+            else
+                if tokens[4] ~= "hold" then
+                    ir.warn("parse_mouse_button_bind: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
                 end
-            end)
-        else
-            if tokens[4] ~= "hold" then
-                ir.warn("parse_mouse_button_bind: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"hold\".")
+                add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_DOWN, button, function(event)
+                    irpriv.bind[name] = 1
+                end)
+                add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_UP, button, function(event)
+                    irpriv.bind[name] = 0
+                end)
             end
-            add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_DOWN, button, function(event)
-                irpriv.bind[name] = 1
-            end)
-            add_event_listener(ir.internal.EVENT_MOUSE_BUTTON_UP, button, function(event)
-                irpriv.bind[name] = 0
-            end)
+        else
+            ir.warn("parse_mouse_button_bind: Invalid code \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
         end
     else
-        ir.warn("parse_mouse_button_bind: Invalid code \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
+        ir.warn("parse_mouse_button_bind: Invalid format for bind \"" .. name .. "\"")
     end
 end
 
--- Format: mouse <axis|button> ...
+-- Format: mouse pressure
+-- I legitimately don't know if you can have multiple sources. ~ahill
+local function parse_mouse_pressure_bind(name, tokens)
+    irpriv.bind[name] = 0
+    add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
+        -- Thanks Allegro for already keeping this input in a range from 0.0 to
+        -- 1.0! ~ahill
+        irpriv.bind[name] = event.pressure
+    end)
+end
+
+-- Format: mouse <axis|button|pressure> ...
 local function parse_mouse_bind(name, tokens)
-    if #tokens >= 4 then
+    if #tokens >= 2 then
         if tokens[2] == "axis" then
             parse_mouse_axis_bind(name, tokens)
         elseif tokens[2] == "button" then
             parse_mouse_button_bind(name, tokens)
+        elseif tokens[2] == "pressure" then
+            parse_mouse_pressure_bind(name, tokens)
         else
             ir.warn("parse_mouse_bind: Invalid subtype \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
         end
