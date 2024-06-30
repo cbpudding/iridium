@@ -73,7 +73,26 @@ end
 
 -- Format: mouse axis <w|x|y|z> <locked|normal> [inverse]
 local function parse_mouse_axis_bind(name, tokens)
-    -- ...
+    if #tokens >= 4 then
+        local axis = tokens[3]
+        local locked = tokens[4] == "locked"
+        local inverse = tokens[5] == "inverse"
+        if tokens[3] == "w" or tokens[3] == "x" or tokens[3] == "y" or tokens[3] == "z" then
+            if not locked and tokens[4] ~= "normal" then
+                ir.warn("parse_mouse_axis_bind: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"normal\".")
+            end
+            irpriv.bind[name] = 0
+            -- TODO: How should cursor locking work? ~ahill
+            add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
+                -- TODO: Figure out how to properly normalize and scale mouse
+                --       movement ~ahill
+            end)
+        else
+            ir.warn("parse_mouse_axis_bind: Unknown axis \"" .. axis .. "\" for bind \"" .. name .. "\"")
+        end
+    else
+        ir.warn("parse_mouse_axis_bind: Invalid format for bind \"" .. name "\"")
+    end
 end
 
 -- Format: mouse button <code> <hold|toggle>
@@ -111,7 +130,7 @@ end
 
 -- Format: mouse pressure
 -- I legitimately don't know if you can have multiple sources. ~ahill
-local function parse_mouse_pressure_bind(name, tokens)
+local function parse_mouse_pressure_bind(name)
     irpriv.bind[name] = 0
     add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
         -- Thanks Allegro for already keeping this input in a range from 0.0 to
@@ -128,7 +147,7 @@ local function parse_mouse_bind(name, tokens)
         elseif tokens[2] == "button" then
             parse_mouse_button_bind(name, tokens)
         elseif tokens[2] == "pressure" then
-            parse_mouse_pressure_bind(name, tokens)
+            parse_mouse_pressure_bind(name)
         else
             ir.warn("parse_mouse_bind: Invalid subtype \"" .. tokens[2] .. "\" on bind \"" .. name .. "\"")
         end
