@@ -71,22 +71,35 @@ local function parse_key_bind(name, tokens)
     end
 end
 
--- Format: mouse axis <w|x|y|z> <locked|normal> [inverse]
+-- Format: mouse axis <x|y> <locked|normal> [inverse]
 local function parse_mouse_axis_bind(name, tokens)
     if #tokens >= 4 then
         local axis = tokens[3]
         local locked = tokens[4] == "locked"
         local inverse = tokens[5] == "inverse"
-        if tokens[3] == "w" or tokens[3] == "x" or tokens[3] == "y" or tokens[3] == "z" then
+        if axis == "x" or axis == "y" then
             if not locked and tokens[4] ~= "normal" then
-                ir.warn("parse_mouse_axis_bind: Invalid behavior \"" .. tokens[3] .. "\". Defaulting to \"normal\".")
+                ir.warn("parse_mouse_axis_bind: Invalid behavior \"" .. tokens[4] .. "\". Defaulting to \"normal\".")
             end
             irpriv.bind[name] = 0
-            -- TODO: How should cursor locking work? ~ahill
-            add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
-                -- TODO: Figure out how to properly normalize and scale mouse
-                --       movement ~ahill
-            end)
+            if locked then
+                add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
+                    -- ...
+                end)
+            else
+                add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
+                    local value = 0.0
+                    if axis == "x" then
+                        value = event.x / ir.internal.width()
+                    elseif axis == "y" then
+                        value = event.y / ir.internal.height()
+                    end
+                    if inverse then
+                        value = 1.0 - value
+                    end
+                    irpriv.bind[name] = value
+                end)
+            end
         else
             ir.warn("parse_mouse_axis_bind: Unknown axis \"" .. axis .. "\" for bind \"" .. name .. "\"")
         end
@@ -307,17 +320,19 @@ function irpriv.kernel(opts)
             ir.internal.present()
             frames = frames + 1
         elseif ir.internal.binds[event.type] then
-            local index = nil
+            local binds = nil
             if event.type == ir.internal.EVENT_KEY_DOWN or event.type == ir.internal.EVENT_KEY_UP then
-                index = event.keycode
+                binds = ir.internal.binds[event.type][event.keycode]
             elseif event.type == ir.internal.EVENT_MOUSE_BUTTON_DOWN or event.type == ir.internal.EVENT_MOUSE_BUTTON_UP then
-                index = event.button
+                binds = ir.internal.binds[event.type][event.button]
+            elseif event.type == ir.internal.EVENT_MOUSE_AXES then
+                binds = ir.internal.binds[event.type]
             else
                 ir.warn("ir.kernel: Unhandled event type " .. event.type)
             end
-            if index then
-                if ir.internal.binds[event.type][index] then
-                    for _, update in ipairs(ir.internal.binds[event.type][index]) do
+            if binds then
+                if binds then
+                    for _, update in ipairs(binds) do
                         update(event)
                     end
                 end
@@ -403,7 +418,7 @@ function ir.listener.bind(bind, cond, msg)
             if cond(ir.bind[bind]) and not active then
                 active = true
                 return msg
-            elseif active then
+            elseif not cond(ir.bind[bind]) and active then
                 active = false
             end
             return nil
