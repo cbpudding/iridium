@@ -17,11 +17,15 @@ typedef enum {
 } ir_command;
 
 typedef struct {
+	bool mouselock;
 	lua_State *state;
 } ir_model;
 
 void ir_model_drop(ir_model *model);
 int ir_model_new(ir_model *model);
+
+int ir_model_mouselock_lua(lua_State *L);
+int ir_model_time_lua(lua_State *L);
 int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...);
 
 const char *ir_totypename(lua_State *L, int idx);

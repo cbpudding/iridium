@@ -7,6 +7,7 @@
 #include <physfs.h>
 
 #include "log.h"
+#include "main.h"
 #include "matrix.h"
 #include "model.h"
 #include "resources.h"
@@ -25,7 +26,6 @@ void ir_model_drop(ir_model *model) {
 }
 
 void ir_model_new_internal(ir_model *model);
-int ir_model_time_lua(lua_State *L);
 
 int ir_model_new(ir_model *model) {
 	model->state = luaL_newstate();
@@ -96,7 +96,7 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 46);
+	lua_createtable(model->state, 0, 47);
 
 	// Internal Functions
 
@@ -120,6 +120,9 @@ void ir_model_new_internal(ir_model *model) {
 
 	lua_pushcfunction(model->state, ir_resources_mount_lua);
 	lua_setfield(model->state, -2, "mount");
+
+	lua_pushcfunction(model->state, ir_model_mouselock_lua);
+	lua_setfield(model->state, -2, "mouselock");
 
 	lua_pushcfunction(model->state, ir_subscription_poll_lua);
 	lua_setfield(model->state, -2, "poll");
@@ -241,6 +244,29 @@ void ir_model_new_internal(ir_model *model) {
 	lua_setfield(model->state, -2, "EVENT_DROP");
 
 	lua_setfield(model->state, -2, "internal");
+}
+
+int ir_model_mouselock_lua(lua_State *L) {
+	int argc = lua_gettop(L);
+
+	if(argc == 0) {
+		lua_pushboolean(L, ENGINE.model.mouselock);
+		return 1;
+	} else if(argc == 1) {
+		if(lua_isboolean(L, -1)) {
+			ENGINE.model.mouselock = lua_toboolean(L, -1);
+			if(ENGINE.model.mouselock) {
+				al_grab_mouse(ENGINE.view.display);
+			} else {
+				al_ungrab_mouse();
+			}
+		}
+		lua_pop(L, 1);
+	} else {
+		lua_pop(L, argc);
+	}
+
+	return 0;
 }
 
 int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...) {

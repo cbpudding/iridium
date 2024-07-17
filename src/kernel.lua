@@ -20,6 +20,9 @@ irpriv.cmd = {
     end,
     multiple = function(list)
         return {3, list}
+    end,
+    mouselock = function(state)
+        return {4, state}
     end
 }
 
@@ -207,6 +210,10 @@ function irpriv.kernel(opts)
                 for _, v in ipairs(cmd[2]) do
                     command(v)
                 end
+            end,
+            -- ir.cmd.mouselock
+            [4] = function()
+                ir.internal.mouselock(cmd[2])
             end
         }
         if cmds[cmd[1]] and type(cmds[cmd[1]]) == "function" then
