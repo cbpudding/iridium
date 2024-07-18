@@ -496,6 +496,9 @@ end
 -- Program Defaults
 
 ---@diagnostic disable-next-line: duplicate-set-field
+ir.model = {}
+
+---@diagnostic disable-next-line: duplicate-set-field
 ir.subscriptions = {}
 
 ---@diagnostic disable-next-line: duplicate-set-field

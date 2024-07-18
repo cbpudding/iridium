@@ -257,7 +257,9 @@ int ir_model_mouselock_lua(lua_State *L) {
 			ENGINE.model.mouselock = lua_toboolean(L, -1);
 			if(ENGINE.model.mouselock) {
 				al_grab_mouse(ENGINE.view.display);
+				al_hide_mouse_cursor(ENGINE.view.display);
 			} else {
+				al_show_mouse_cursor(ENGINE.view.display);
 				al_ungrab_mouse();
 			}
 		}
