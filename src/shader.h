@@ -9,6 +9,7 @@
 
 #include <allegro5/allegro_opengl.h>
 #include <GL/glext.h>
+#include <luajit-2.1/lua.h>
 
 typedef struct {
 	GLuint fragment;
@@ -29,6 +30,7 @@ void ir_shader_use(ir_shader *shader);
 
 // Lua interface
 
+void ir_shader_init_lua(lua_State *L);
 int ir_shader_isshader(lua_State *L, int index);
 
 int ir_shader_drop_lua(lua_State *L);

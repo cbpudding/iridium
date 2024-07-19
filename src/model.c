@@ -11,6 +11,7 @@
 #include "matrix.h"
 #include "model.h"
 #include "resources.h"
+#include "shader.h"
 #include "subscription.h"
 #include "view.h"
 
@@ -51,9 +52,6 @@ int ir_model_new(ir_model *model) {
 	lua_pushcfunction(model->state, ir_info_lua);
 	lua_setfield(model->state, -2, "info");
 
-	lua_pushcfunction(model->state, ir_shader_new_lua);
-	lua_setfield(model->state, -2, "shader");
-
 	lua_pushcfunction(model->state, ir_model_time_lua);
 	lua_setfield(model->state, -2, "time");
 
@@ -65,6 +63,8 @@ int ir_model_new(ir_model *model) {
 	ir_matrix_init_lua(model->state);
 
 	ir_vector_init_lua(model->state);
+
+  ir_shader_init_lua(model->state);
 
 	lua_setglobal(model->state, "ir");
 

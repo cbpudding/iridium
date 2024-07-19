@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "matrix.h"
+#include "lua.h"
 #include "model.h"
 
 // NOTE: For potential windows support we'd need _aligned_malloc instead ~FabricatorZayac
@@ -25,6 +26,21 @@ void ir_matrix_init_lua(lua_State *L) {
 	lua_pushcfunction(L, ir_matrix_zero_lua);
 	lua_setfield(L, -2, "zero");
 
+    // mat.meta
+	lua_createtable(L, 0, 3);
+
+	lua_pushcfunction(L, ir_matrix_index_lua);
+	lua_setfield(L, -2, "__index");
+
+	lua_pushcfunction(L, ir_matrix_multiply_lua);
+	lua_setfield(L, -2, "__mul");
+
+    lua_pushcfunction(L, ir_matrix_free_lua);
+    lua_setfield(L, -2, "__gc");
+
+    lua_setfield(L, -2, "meta");
+    // /mat.meta
+
 	lua_setfield(L, -2, "mat");
 }
 
@@ -38,16 +54,11 @@ void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
 	mat4 **userdata = lua_newuserdata(L, sizeof(mat4 *));
     *userdata = victim;
 
-	lua_createtable(L, 0, 3);
-
-	lua_pushcfunction(L, ir_matrix_index_lua);
-	lua_setfield(L, -2, "__index");
-
-	lua_pushcfunction(L, ir_matrix_multiply_lua);
-	lua_setfield(L, -2, "__mul");
-
-    lua_pushcfunction(L, ir_matrix_free_lua);
-    lua_setfield(L, -2, "__gc");
+    lua_getglobal(L, "ir");
+    lua_getfield(L, -1, "mat");
+    lua_replace(L, -2);
+    lua_getfield(L, -1, "meta");
+    lua_replace(L, -2);
 
 	lua_setmetatable(L, -2);
 }
