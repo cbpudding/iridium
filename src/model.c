@@ -22,21 +22,21 @@
 // ~ahill
 
 void *ir_new(lua_State *L, int typeid) {
-    int *userdata;
+	int *userdata;
 
-    switch (typeid) {
-    case IR_LUA_UMATRIX:
-        userdata = lua_newuserdata(L, sizeof(mat4 *) + sizeof(int));
-        break;
-    case IR_LUA_USHADER:
-        userdata = lua_newuserdata(L, sizeof(ir_shader) + sizeof(int));
-        break;
-    default:
-        ir_error("ir_new: Invalid typeid: %d", typeid);
-        return NULL;
-    }
-    *userdata = typeid;
-    return userdata + 1;
+	switch (typeid) {
+	case IR_LUA_UMATRIX:
+		userdata = lua_newuserdata(L, sizeof(mat4 *) + sizeof(int));
+		break;
+	case IR_LUA_USHADER:
+		userdata = lua_newuserdata(L, sizeof(ir_shader) + sizeof(int));
+		break;
+	default:
+		ir_error("ir_new: Invalid typeid: %d", typeid);
+		return NULL;
+	}
+	*userdata = typeid;
+	return userdata + 1;
 }
 
 void ir_model_drop(ir_model *model) {
@@ -87,8 +87,8 @@ int ir_model_new(ir_model *model) {
 
 	lua_setglobal(model->state, "ir");
 
-    lua_pushcfunction(model->state, ir_typename_lua);
-    lua_setglobal(model->state, "type");
+	lua_pushcfunction(model->state, ir_typename_lua);
+	lua_setglobal(model->state, "type");
 
 	luaL_loadbuffer(
 		model->state,
@@ -262,10 +262,10 @@ void ir_model_new_internal(lua_State *L) {
 	lua_pushinteger(L, ALLEGRO_EVENT_DROP);
 	lua_setfield(L, -2, "EVENT_DROP");
 
-    // meta
-    lua_createtable(L, 0, 2);
+	// meta
+	lua_createtable(L, 0, 2);
 
-    // shader_meta
+	// shader_meta
 	lua_createtable(L, 0, 2);
 
 	lua_pushcfunction(L, ir_shader_drop_lua);
@@ -278,10 +278,10 @@ void ir_model_new_internal(lua_State *L) {
 
 	lua_setfield(L, -2, "__index");
 
-    lua_setfield(L, -2, "shader");
-    // /shader_meta
+	lua_setfield(L, -2, "shader");
+	// /shader_meta
 
-    // mat_meta
+	// mat_meta
 	lua_createtable(L, 0, 3);
 
 	lua_pushcfunction(L, ir_matrix_index_lua);
@@ -290,14 +290,14 @@ void ir_model_new_internal(lua_State *L) {
 	lua_pushcfunction(L, ir_matrix_multiply_lua);
 	lua_setfield(L, -2, "__mul");
 
-    lua_pushcfunction(L, ir_matrix_free_lua);
-    lua_setfield(L, -2, "__gc");
+	lua_pushcfunction(L, ir_matrix_free_lua);
+	lua_setfield(L, -2, "__gc");
 
-    lua_setfield(L, -2, "mat");
-    // /mat_meta
+	lua_setfield(L, -2, "mat");
+	// /mat_meta
 
-    lua_setfield(L, -2, "meta");
-    // /meta
+	lua_setfield(L, -2, "meta");
+	// /meta
 
 	lua_setfield(L, -2, "internal");
 }
@@ -305,13 +305,13 @@ void ir_model_new_internal(lua_State *L) {
 int ir_model_mouselock_lua(lua_State *L) {
 	int argc = lua_gettop(L);
 
-	if(argc == 0) {
+	if (argc == 0) {
 		lua_pushboolean(L, ENGINE.model.mouselock);
 		return 1;
-	} else if(argc == 1) {
-		if(lua_isboolean(L, -1)) {
+	} else if (argc == 1) {
+		if (lua_isboolean(L, -1)) {
 			ENGINE.model.mouselock = lua_toboolean(L, -1);
-			if(ENGINE.model.mouselock) {
+			if (ENGINE.model.mouselock) {
 				al_grab_mouse(ENGINE.view.display);
 				al_hide_mouse_cursor(ENGINE.view.display);
 			} else {
@@ -328,65 +328,62 @@ int ir_model_mouselock_lua(lua_State *L) {
 }
 
 int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...) {
-    va_list args1, args2;
-    va_start(args1, fmt);
-    va_copy(args2, args1);
+	va_list args1, args2;
+	va_start(args1, fmt);
+	va_copy(args2, args1);
 
-    size_t bufsize = vsnprintf(NULL, 0, fmt, args1);
-    va_end(args1);
+	size_t bufsize = vsnprintf(NULL, 0, fmt, args1);
+	va_end(args1);
 
-    char errstr[bufsize];
-    vsnprintf(errstr, bufsize, fmt, args2);
+	char errstr[bufsize];
+	vsnprintf(errstr, bufsize, fmt, args2);
 
-    va_end(args2);
+	va_end(args2);
 
-    lua_pushboolean(L, false);
-    lua_pushstring(L, errstr);
+	lua_pushboolean(L, false);
+	lua_pushstring(L, errstr);
 
-    return 2;
+	return 2;
 }
 
 const char *ir_totypename(lua_State *L, int idx) {
-    int *ir_typeid;
-    int lua_typeid;
-    const char *typename;
+	int *ir_typeid;
+	int lua_typeid;
+	const char *typename;
 
-    lua_typeid = lua_type(L, idx);
-    switch (lua_typeid) {
-    case LUA_TUSERDATA:
-        ir_typeid = lua_touserdata(L, -1);
-        switch (*ir_typeid) {
-        case IR_LUA_UMATRIX:
-            typename = "matrix";
-            break;
-        case IR_LUA_USHADER:
-            typename = "shader";
-            break;
-        default:
-            typename = "userdata";
-            break;
-        }
-        break;
-    default:
-        typename = lua_typename(L, lua_typeid);
-        break;
-    }
+	lua_typeid = lua_type(L, idx);
+	if(lua_typeid == LUA_TUSERDATA) {
+		ir_typeid = lua_touserdata(L, -1);
+		switch (*ir_typeid) {
+		case IR_LUA_UMATRIX:
+			typename = "matrix";
+			break;
+		case IR_LUA_USHADER:
+			typename = "shader";
+			break;
+		default:
+			typename = "userdata";
+			break;
+		}
+	} else {
+		typename = lua_typename(L, lua_typeid);
+	}
 
-    return typename;
+	return typename;
 }
 
 int ir_typename_lua(lua_State *L) {
-    int argc;
-    const char *typename;
+	int argc;
+	const char *typename;
 
-    argc = lua_gettop(L);
-    if (argc != 1) {
-        lua_pop(L, argc);
-        return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
-    }
+	argc = lua_gettop(L);
+	if (argc != 1) {
+		lua_pop(L, argc);
+		return ir_push_error_lua(L, "Expected 1 argument, provided %d", argc);
+	}
 
-    typename = ir_totypename(L, -1);
-    lua_pop(L, 1);
-    lua_pushstring(L, typename);
-    return 1;
+	typename = ir_totypename(L, -1);
+	lua_pop(L, 1);
+	lua_pushstring(L, typename);
+	return 1;
 }

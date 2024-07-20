@@ -18,7 +18,7 @@
 typedef struct {
 	ALLEGRO_DISPLAY *display;
 	ir_shader shader;
-    GLuint textures;
+	GLuint textures;
 	GLuint vbo;
 } ir_view;
 

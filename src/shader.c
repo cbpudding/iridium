@@ -73,15 +73,31 @@ int ir_shader_new(
 	}
 
 	shader->position = glGetAttribLocation(shader->program, "position");
-	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+	glVertexAttribPointer(
+		shader->position, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0
+	);
 	glEnableVertexAttribArray(shader->position);
 
 	shader->texcoord = glGetAttribLocation(shader->program, "texcoord");
-	glVertexAttribPointer(shader->texcoord, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(4 * sizeof(float)));
+	glVertexAttribPointer(
+		shader->texcoord,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		6 * sizeof(float),
+		(void *)(4 * sizeof(float))
+	);
 	glEnableVertexAttribArray(shader->texcoord);
 
 	shader->texture_id = glGetAttribLocation(shader->program, "textureid");
-	glVertexAttribPointer(shader->texture_id, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+	glVertexAttribPointer(
+		shader->texture_id,
+		1,
+		GL_FLOAT,
+		GL_FALSE,
+		6 * sizeof(float),
+		(void *)(3 * sizeof(float))
+	);
 	glEnableVertexAttribArray(shader->texture_id);
 
 	shader->camera = glGetUniformLocation(shader->program, "camera");
@@ -90,20 +106,18 @@ int ir_shader_new(
 	return 0;
 }
 
-void ir_shader_use(ir_shader *shader) {
-	glUseProgram(shader->program);
-}
+void ir_shader_use(ir_shader *shader) { glUseProgram(shader->program); }
 
 // Lua interface
 
 bool ir_shader_isshader(lua_State *L, int index) {
-    const int *typeid;
+	const int *typeid;
 
 	if (!lua_isuserdata(L, index)) {
 		return false;
 	}
 
-    typeid = lua_touserdata(L, index);
+	typeid = lua_touserdata(L, index);
 	return *typeid == IR_LUA_USHADER;
 }
 
@@ -151,13 +165,13 @@ int ir_shader_new_lua(lua_State *L) {
 		return 0;
 	}
 
-    lua_getglobal(L, "ir");
-    lua_getfield(L, -1,  "internal");
-    lua_replace(L, -2);
-    lua_getfield(L, -1,  "meta");
-    lua_replace(L, -2);
-    lua_getfield(L, -1,  "shader");
-    lua_replace(L, -2);
+	lua_getglobal(L, "ir");
+	lua_getfield(L, -1, "internal");
+	lua_replace(L, -2);
+	lua_getfield(L, -1, "meta");
+	lua_replace(L, -2);
+	lua_getfield(L, -1, "shader");
+	lua_replace(L, -2);
 
 	lua_setmetatable(L, -2);
 

@@ -13,7 +13,9 @@
 #include "subscription.h"
 
 void ir_subscription_drop(ir_subscription *subs) {
-	al_unregister_event_source(subs->queue, al_get_timer_event_source(subs->frame_timer));
+	al_unregister_event_source(
+		subs->queue, al_get_timer_event_source(subs->frame_timer)
+	);
 	al_destroy_timer(subs->frame_timer);
 
 	if (al_is_joystick_installed()) {
@@ -171,13 +173,11 @@ int ir_subscription_poll_lua(lua_State *L) {
 		lua_setfield(L, -2, "count");
 
 		// Pointers are just numbers... ~ahill
-		lua_pushinteger(L, (intmax_t) event.timer.source);
+		lua_pushinteger(L, (intmax_t)event.timer.source);
 		lua_setfield(L, -2, "source");
 		break;
 	default:
-		ir_warn(
-			"ir_subscription_poll_lua: Unhandled event: %u", event.type
-		);
+		ir_warn("ir_subscription_poll_lua: Unhandled event: %u", event.type);
 		break;
 	}
 	return 1;

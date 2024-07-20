@@ -20,7 +20,7 @@
 
 void ir_view_drop(ir_view *view) {
 	// ...
-    glDeleteTextures(1, &view->textures);
+	glDeleteTextures(1, &view->textures);
 	ir_shader_drop(&view->shader);
 	glDeleteBuffers(1, &view->vbo);
 	if (al_is_audio_installed()) {
@@ -49,7 +49,7 @@ int ir_view_new(ir_view *view) {
 		ir_warn("ir_view_new: Failed to initialize the audio subsystem");
 	}
 
-    glEnable(GL_TEXTURE_2D_ARRAY_EXT);
+	glEnable(GL_TEXTURE_2D_ARRAY_EXT);
 	glGenBuffers(1, &view->vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, view->vbo);
 
@@ -71,15 +71,15 @@ int ir_view_new(ir_view *view) {
 
 	ir_shader_use(&view->shader);
 
-    glGenTextures(1, &view->textures);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, view->textures);
+	glGenTextures(1, &view->textures);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, view->textures);
 
-    // TODO: Configurable filtering ~FabricatorZayac
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	// TODO: Configurable filtering ~FabricatorZayac
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	return 0;
 }
@@ -105,12 +105,12 @@ int ir_view_height_lua(lua_State *L) {
 	int height;
 	int width;
 
-	if(lua_gettop(L) > 1) {
+	if (lua_gettop(L) > 1) {
 		lua_pop(L, lua_gettop(L));
 		return 0;
 	}
 
-	if(lua_gettop(L) == 0) {
+	if (lua_gettop(L) == 0) {
 		height = al_get_display_height(ENGINE.view.display);
 		lua_pushnumber(L, height);
 		return 1;
@@ -159,65 +159,65 @@ int ir_view_render_lua(lua_State *L) {
 int ir_view_setcamera_lua(lua_State *L) {
 	mat4 *camera;
 
-	if(!ir_matrix_ismatrix(L, -1)) {
+	if (!ir_matrix_ismatrix(L, -1)) {
 		return 0;
 	}
 
 	camera = ir_matrix_tomatrix(L, -1);
 
-	glUniformMatrix4fv(ENGINE.view.shader.camera, 1, GL_FALSE, (float *) *camera);
+	glUniformMatrix4fv(
+		ENGINE.view.shader.camera, 1, GL_FALSE, (float *)*camera
+	);
 
 	lua_pop(L, 1);
 	return 0;
 }
 
 int ir_view_texturemap_lua(lua_State *L) {
-    const unsigned char *buffer;
-    const unsigned char *data;
-    int height;
-    size_t len;
-    int width;
+	const unsigned char *buffer;
+	const unsigned char *data;
+	int height;
+	size_t len;
+	int width;
 
-    if (lua_gettop(L) != 1) {
-        ir_error(
-                "ir_view_texturemap_lua: 1 argument expected, %d received",
-                lua_gettop(L)
-        );
-        lua_pop(L, lua_gettop(L));
+	if (lua_gettop(L) != 1) {
+		ir_error(
+			"ir_view_texturemap_lua: 1 argument expected, %d received",
+			lua_gettop(L)
+		);
+		lua_pop(L, lua_gettop(L));
 
-        lua_pushboolean(L, false);
-        lua_pushstring(L, "Expected 1 argument");
+		lua_pushboolean(L, false);
+		lua_pushstring(L, "Expected 1 argument");
 
-        return 2;
-    }
+		return 2;
+	}
 
-    if (!lua_isstring(L, -1)) {
-        ir_error(
-                "ir_view_texturemap_lua: string expected, %s received",
-                lua_typename(L, lua_type(L, -1))
-        );
-        lua_pop(L, 1);
+	if (!lua_isstring(L, -1)) {
+		ir_error(
+			"ir_view_texturemap_lua: string expected, %s received",
+			lua_typename(L, lua_type(L, -1))
+		);
+		lua_pop(L, 1);
 
-        lua_pushboolean(L, false);
-        lua_pushstring(L, "Expected string (filebuffer)");
+		lua_pushboolean(L, false);
+		lua_pushstring(L, "Expected string (filebuffer)");
 
-        return 2;
-    }
+		return 2;
+	}
 
-    buffer = (const unsigned char *) lua_tolstring(L, -1, &len);
-    lua_pop(L, 1);
+	buffer = (const unsigned char *)lua_tolstring(L, -1, &len);
+	lua_pop(L, 1);
 
-    data = stbi_load_from_memory(
-        buffer,
-        len,
-        &width,
-        &height,
-        NULL,
-        STBI_rgb_alpha
-    );
+	data = stbi_load_from_memory(
+		buffer, len, &width, &height, NULL, STBI_rgb_alpha
+	);
 
-	if(!data) {
-		ir_error("ir_view_texturemap_lua: Failed to decode image: %s", stbi_failure_reason());
+	if (!data) {
+		ir_error(
+			"ir_view_texturemap_lua: Failed to decode image: %s",
+			stbi_failure_reason()
+		);
 
 		lua_pushboolean(L, false);
 		lua_pushstring(L, stbi_failure_reason());
@@ -225,27 +225,40 @@ int ir_view_texturemap_lua(lua_State *L) {
 		return 2;
 	}
 
-    // TODO: Mipmap??? ~FabricatorZayac
+	// TODO: Mipmap??? ~FabricatorZayac
 	// TODO: Is glTexStorage3D even required if we're using glTexImage3D? ~ahill
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, width, height / width);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB8, width, width, height / width, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexStorage3D(
+		GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, width, height / width
+	);
+	glTexImage3D(
+		GL_TEXTURE_2D_ARRAY,
+		0,
+		GL_RGB8,
+		width,
+		width,
+		height / width,
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		data
+	);
 
-	stbi_image_free((void *) data);
+	stbi_image_free((void *)data);
 
-    lua_pushboolean(L, true);
-  	return 1;
+	lua_pushboolean(L, true);
+	return 1;
 }
 
 int ir_view_width_lua(lua_State *L) {
 	int height;
 	int width;
 
-	if(lua_gettop(L) > 1) {
+	if (lua_gettop(L) > 1) {
 		lua_pop(L, lua_gettop(L));
 		return 0;
 	}
 
-	if(lua_gettop(L) == 0) {
+	if (lua_gettop(L) == 0) {
 		width = al_get_display_width(ENGINE.view.display);
 		lua_pushnumber(L, width);
 		return 1;
