@@ -21,6 +21,24 @@
 // TODO: Figure out how to prevent subscriptions from changing the game's state!
 // ~ahill
 
+void *ir_new(lua_State *L, int typeid) {
+    int *userdata;
+
+    switch (typeid) {
+    case IR_LUA_UMATRIX:
+        userdata = lua_newuserdata(L, sizeof(mat4 *) + sizeof(int));
+        break;
+    case IR_LUA_USHADER:
+        userdata = lua_newuserdata(L, sizeof(ir_shader) + sizeof(int));
+        break;
+    default:
+        ir_error("ir_new: Invalid typeid: %d", typeid);
+        return NULL;
+    }
+    *userdata = typeid;
+    return userdata + 1;
+}
+
 void ir_model_drop(ir_model *model) {
 	// ...
 	lua_close(model->state);
@@ -248,15 +266,12 @@ void ir_model_new_internal(lua_State *L) {
     lua_createtable(L, 0, 2);
 
     // shader_meta
-	lua_createtable(L, 0, 1);
+	lua_createtable(L, 0, 2);
 
 	lua_pushcfunction(L, ir_shader_drop_lua);
 	lua_setfield(L, -2, "__gc");
 
 	lua_createtable(L, 0, 1);
-
-	lua_pushstring(L, "shader");
-	lua_setfield(L, -2, "__type");
 
 	lua_pushcfunction(L, ir_shader_use_lua);
 	lua_setfield(L, -2, "use");
@@ -332,20 +347,25 @@ int ir_push_error_lua(lua_State *L, const char *restrict fmt, ...) {
 }
 
 const char *ir_totypename(lua_State *L, int idx) {
+    int *ir_typeid;
     int lua_typeid;
     const char *typename;
 
     lua_typeid = lua_type(L, idx);
     switch (lua_typeid) {
-    case LUA_TTABLE:
     case LUA_TUSERDATA:
-        lua_getfield(L, -1, "__type");
-        if (lua_isstring(L, -1)) {
-            typename = lua_tostring(L, -1);
-        } else {
-            typename = lua_typename(L, lua_typeid);
+        ir_typeid = lua_touserdata(L, -1);
+        switch (*ir_typeid) {
+        case IR_LUA_UMATRIX:
+            typename = "matrix";
+            break;
+        case IR_LUA_USHADER:
+            typename = "shader";
+            break;
+        default:
+            typename = "userdata";
+            break;
         }
-        lua_pop(L, 1);
         break;
     default:
         typename = lua_typename(L, lua_typeid);

@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "matrix.h"
-#include "lua.h"
+#include "cglm/types.h"
 #include "model.h"
 
 // NOTE: For potential windows support we'd need _aligned_malloc instead ~FabricatorZayac
@@ -30,13 +30,20 @@ void ir_matrix_init_lua(lua_State *L) {
 }
 
 bool ir_matrix_ismatrix(lua_State *L, int index) {
-	return !strcmp(ir_totypename(L, index), "matrix");
+    const int *typeid;
+
+	if (!lua_isuserdata(L, index)) {
+		return false;
+	}
+
+    typeid = lua_touserdata(L, index);
+	return *typeid == IR_LUA_UMATRIX;
 }
 
 void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
 	// We store the pointer to the matrix rather than the matrix itself to
 	// guarantee memory alignment. ~ahill
-	mat4 **userdata = lua_newuserdata(L, sizeof(mat4 *));
+	mat4 **userdata = ir_new(L, IR_LUA_UMATRIX);
     *userdata = victim;
 
     lua_getglobal(L, "ir");
@@ -52,15 +59,15 @@ void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
 
 mat4 *ir_matrix_tomatrix(lua_State *L, int index) {
     // Assumes you checked if it's a matrix ~FabricatorZayac
-    mat4 **userdata = lua_touserdata(L, index);
+    int *typeid = lua_touserdata(L, index);
+    mat4 **userdata = (mat4 **)(typeid + 1);
     return *userdata;
 }
 
 // Matrix Operations
 
 int ir_matrix_free_lua(lua_State *L) {
-    mat4 **userdata = lua_touserdata(L, -1);
-    free(*userdata);
+    free(ir_matrix_tomatrix(L, -1));
     lua_pop(L, 1);
 
     return 0;
@@ -132,9 +139,6 @@ int ir_matrix_index_lua(lua_State *L) {
 		if(!strcmp(key, "__metatable")) {
 			lua_pushstring(L, "My God, what are you doing?");
 			return 1;
-		} else if(!strcmp(key, "__type")) {
-			lua_pushstring(L, "matrix");
-			return 1;
 		} else if(!strcmp(key, "inverse")) {
 			lua_pushcfunction(L, ir_matrix_inverse_lua);
 			return 1;
@@ -158,8 +162,6 @@ int ir_matrix_inverse_lua(lua_State *L) {
     }
 
 	if (!ir_matrix_ismatrix(L, -1)) {
-        // We might want to make a custom typename function that would
-        // additionally check the __type field in userdata ~FabricatorZayac
         const char *typename = lua_typename(L, lua_type(L, -1));
 		lua_pop(L, 1);
         return ir_push_error_lua(L, "Expected matrix, provided %s", typename);
