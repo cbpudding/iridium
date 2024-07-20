@@ -20,7 +20,7 @@
 
 void ir_view_drop(ir_view *view) {
 	// ...
-    glDeleteTextures(1, &view->texturemap);
+    glDeleteTextures(1, &view->textures);
 	ir_shader_drop(&view->shader);
 	glDeleteBuffers(1, &view->vbo);
 	if (al_is_audio_installed()) {
@@ -71,23 +71,8 @@ int ir_view_new(ir_view *view) {
 
 	ir_shader_use(&view->shader);
 
-	view->position = glGetAttribLocation(view->shader.program, "position");
-	glVertexAttribPointer(view->position, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
-	glEnableVertexAttribArray(view->position);
-
-	view->texcoord = glGetAttribLocation(view->shader.program, "texcoord");
-	glVertexAttribPointer(view->texcoord, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(4 * sizeof(float)));
-	glEnableVertexAttribArray(view->texcoord);
-
-	view->texture_id = glGetAttribLocation(view->shader.program, "textureid");
-	glVertexAttribPointer(view->texture_id, 1, GL_UNSIGNED_INT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-	glEnableVertexAttribArray(view->texture_id);
-
-	view->camera = glGetUniformLocation(view->shader.program, "camera");
-	view->textures = glGetUniformLocation(view->shader.program, "textures");
-
-    glGenTextures(1, &view->texturemap);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, view->texturemap);
+    glGenTextures(1, &view->textures);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, view->textures);
 
     // TODO: Configurable filtering ~FabricatorZayac
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -180,7 +165,7 @@ int ir_view_setcamera_lua(lua_State *L) {
 
 	camera = ir_matrix_tomatrix(L, -1);
 
-	glUniformMatrix4fv(ENGINE.view.camera, 1, GL_FALSE, (float *) *camera);
+	glUniformMatrix4fv(ENGINE.view.shader.camera, 1, GL_FALSE, (float *) *camera);
 
 	lua_pop(L, 1);
 	return 0;

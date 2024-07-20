@@ -11,8 +11,13 @@
 #include <GL/glext.h>
 
 typedef struct {
+	GLint camera;
 	GLuint fragment;
+	GLint position;
 	GLuint program;
+	GLint texcoord;
+	GLint texture_id;
+	GLint texturemap;
 	GLuint vertex;
 } ir_shader;
 

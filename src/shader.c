@@ -70,10 +70,27 @@ int ir_shader_new(
 		return 1;
 	}
 
+	shader->position = glGetAttribLocation(shader->program, "position");
+	glVertexAttribPointer(shader->position, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+	glEnableVertexAttribArray(shader->position);
+
+	shader->texcoord = glGetAttribLocation(shader->program, "texcoord");
+	glVertexAttribPointer(shader->texcoord, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(4 * sizeof(float)));
+	glEnableVertexAttribArray(shader->texcoord);
+
+	shader->texture_id = glGetAttribLocation(shader->program, "textureid");
+	glVertexAttribPointer(shader->texture_id, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+	glEnableVertexAttribArray(shader->texture_id);
+
+	shader->camera = glGetUniformLocation(shader->program, "camera");
+	shader->texturemap = glGetUniformLocation(shader->program, "texturemap");
+
 	return 0;
 }
 
-void ir_shader_use(ir_shader *shader) { glUseProgram(shader->program); }
+void ir_shader_use(ir_shader *shader) {
+	glUseProgram(shader->program);
+}
 
 // Lua interface
 

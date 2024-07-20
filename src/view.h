@@ -16,14 +16,9 @@
 #include "shader.h"
 
 typedef struct {
-	GLint camera;
 	ALLEGRO_DISPLAY *display;
-	GLint position;
 	ir_shader shader;
-	GLint texcoord;
-	GLint texture_id;
-    GLuint texturemap;
-	GLint textures;
+    GLuint textures;
 	GLuint vbo;
 } ir_view;
 
