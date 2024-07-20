@@ -5,11 +5,11 @@
 uniform mat4 camera;
 
 attribute vec3 position;
-attribute int textureid;
+attribute float textureid;
 attribute vec2 texcoord;
 
 varying vec2 frag_texcoord;
-varying int frag_textureid;
+varying float frag_textureid;
 
 void main() {
     frag_texcoord = texcoord;
