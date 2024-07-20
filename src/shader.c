@@ -4,6 +4,7 @@
 
 #include "log.h"
 #include "lua.h"
+#include "model.h"
 #include "shader.h"
 
 // TODO: Should I switch over to using Allegro's shader functions at some point?
@@ -95,27 +96,15 @@ void ir_shader_use(ir_shader *shader) {
 
 // Lua interface
 
-int ir_shader_isshader(lua_State *L, int index) {
-	const char *type;
+bool ir_shader_isshader(lua_State *L, int index) {
+    const int *typeid;
 
 	if (!lua_isuserdata(L, index)) {
-		return 0;
+		return false;
 	}
 
-	lua_getfield(L, index, "__type");
-	if (!lua_isstring(L, -1)) {
-		lua_pop(L, 1);
-		return 0;
-	}
-
-	type = lua_tostring(L, -1);
-	if (strcmp(type, "shader")) {
-		lua_pop(L, 1);
-		return 0;
-	}
-
-	lua_pop(L, 1);
-	return 1;
+    typeid = lua_touserdata(L, index);
+	return *typeid == IR_LUA_USHADER;
 }
 
 int ir_shader_drop_lua(lua_State *L) {
@@ -153,7 +142,7 @@ int ir_shader_new_lua(lua_State *L) {
 
 	lua_pop(L, 2);
 
-	shader = lua_newuserdata(L, sizeof(ir_shader));
+	shader = ir_new(L, IR_LUA_USHADER);
 
 	if (ir_shader_new(
 			shader, vertex_len, (char *)vertex, fragment_len, (char *)fragment

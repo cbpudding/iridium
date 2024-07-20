@@ -5,9 +5,13 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include <cglm/types.h>
 #include <luajit-2.1/lua.h>
 #include <luajit-2.1/lauxlib.h>
 #include <luajit-2.1/lualib.h>
+
+#define IR_LUA_UMATRIX 10
+#define IR_LUA_USHADER 11
 
 typedef enum {
 	// No command
@@ -20,6 +24,8 @@ typedef struct {
 	bool mouselock;
 	lua_State *state;
 } ir_model;
+
+void *ir_new(lua_State *L, int typeid);
 
 void ir_model_drop(ir_model *model);
 int ir_model_new(ir_model *model);
