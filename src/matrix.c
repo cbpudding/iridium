@@ -26,21 +26,6 @@ void ir_matrix_init_lua(lua_State *L) {
 	lua_pushcfunction(L, ir_matrix_zero_lua);
 	lua_setfield(L, -2, "zero");
 
-    // mat.meta
-	lua_createtable(L, 0, 3);
-
-	lua_pushcfunction(L, ir_matrix_index_lua);
-	lua_setfield(L, -2, "__index");
-
-	lua_pushcfunction(L, ir_matrix_multiply_lua);
-	lua_setfield(L, -2, "__mul");
-
-    lua_pushcfunction(L, ir_matrix_free_lua);
-    lua_setfield(L, -2, "__gc");
-
-    lua_setfield(L, -2, "meta");
-    // /mat.meta
-
 	lua_setfield(L, -2, "mat");
 }
 
@@ -55,9 +40,11 @@ void ir_matrix_pushmatrix(lua_State *L, mat4 *victim) {
     *userdata = victim;
 
     lua_getglobal(L, "ir");
-    lua_getfield(L, -1, "mat");
+    lua_getfield(L, -1, "internal");
     lua_replace(L, -2);
     lua_getfield(L, -1, "meta");
+    lua_replace(L, -2);
+    lua_getfield(L, -1, "mat");
     lua_replace(L, -2);
 
 	lua_setmetatable(L, -2);

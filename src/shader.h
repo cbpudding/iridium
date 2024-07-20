@@ -30,7 +30,6 @@ void ir_shader_use(ir_shader *shader);
 
 // Lua interface
 
-void ir_shader_init_lua(lua_State *L);
 int ir_shader_isshader(lua_State *L, int index);
 
 int ir_shader_drop_lua(lua_State *L);
