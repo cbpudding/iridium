@@ -6,9 +6,9 @@
 
 uniform sampler2DArray textures;
 
-attribute int frag_textureid;
-attribute vec2 frag_texcoord;
+varying vec2 frag_texcoord;
+varying float frag_textureid;
 
 void main() {
-    gl_FragColor = texture(textures, vec3(frag_texcoord, float(frag_textureid)));
+    gl_FragColor = texture2DArray(textures, vec3(frag_texcoord, float(frag_textureid)));
 }
