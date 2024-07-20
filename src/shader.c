@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "log.h"
+#include "lua.h"
 #include "shader.h"
 
 // TODO: Should I switch over to using Allegro's shader functions at some point?
@@ -161,20 +162,13 @@ int ir_shader_new_lua(lua_State *L) {
 		return 0;
 	}
 
-	lua_createtable(L, 0, 1);
-
-	lua_pushcfunction(L, ir_shader_drop_lua);
-	lua_setfield(L, -2, "__gc");
-
-	lua_createtable(L, 0, 1);
-
-	lua_pushstring(L, "shader");
-	lua_setfield(L, -2, "__type");
-
-	lua_pushcfunction(L, ir_shader_use_lua);
-	lua_setfield(L, -2, "use");
-
-	lua_setfield(L, -2, "__index");
+    lua_getglobal(L, "ir");
+    lua_getfield(L, -1,  "internal");
+    lua_replace(L, -2);
+    lua_getfield(L, -1,  "meta");
+    lua_replace(L, -2);
+    lua_getfield(L, -1,  "shader");
+    lua_replace(L, -2);
 
 	lua_setmetatable(L, -2);
 

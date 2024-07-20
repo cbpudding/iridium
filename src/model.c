@@ -11,6 +11,7 @@
 #include "matrix.h"
 #include "model.h"
 #include "resources.h"
+#include "shader.h"
 #include "subscription.h"
 #include "view.h"
 
@@ -25,7 +26,7 @@ void ir_model_drop(ir_model *model) {
 	lua_close(model->state);
 }
 
-void ir_model_new_internal(ir_model *model);
+void ir_model_new_internal(lua_State *L);
 
 int ir_model_new(ir_model *model) {
 	model->state = luaL_newstate();
@@ -60,7 +61,7 @@ int ir_model_new(ir_model *model) {
 	lua_pushcfunction(model->state, ir_warn_lua);
 	lua_setfield(model->state, -2, "warn");
 
-	ir_model_new_internal(model);
+	ir_model_new_internal(model->state);
 
 	ir_matrix_init_lua(model->state);
 
@@ -95,155 +96,195 @@ int ir_model_time_lua(lua_State *L) {
 }
 
 // Abandon all hope ye who enter here.
-void ir_model_new_internal(ir_model *model) {
-	lua_createtable(model->state, 0, 47);
+void ir_model_new_internal(lua_State *L) {
+	lua_createtable(L, 0, 48);
 
 	// Internal Functions
 
-	lua_pushcfunction(model->state, ir_view_clear_lua);
-	lua_setfield(model->state, -2, "clear");
+	lua_pushcfunction(L, ir_view_clear_lua);
+	lua_setfield(L, -2, "clear");
 
-	lua_pushcfunction(model->state, ir_subscription_frametimer_lua);
-	lua_setfield(model->state, -2, "frametimer");
+	lua_pushcfunction(L, ir_subscription_frametimer_lua);
+	lua_setfield(L, -2, "frametimer");
 
-	lua_pushcfunction(model->state, ir_resources_fetch_lua);
-	lua_setfield(model->state, -2, "fetch");
+	lua_pushcfunction(L, ir_resources_fetch_lua);
+	lua_setfield(L, -2, "fetch");
 
-	lua_pushcfunction(model->state, ir_view_fullscreen_lua);
-	lua_setfield(model->state, -2, "fullscreen");
+	lua_pushcfunction(L, ir_view_fullscreen_lua);
+	lua_setfield(L, -2, "fullscreen");
 
-	lua_pushcfunction(model->state, ir_view_height_lua);
-	lua_setfield(model->state, -2, "height");
+	lua_pushcfunction(L, ir_view_height_lua);
+	lua_setfield(L, -2, "height");
 
-	lua_pushcfunction(model->state, ir_resources_list_lua);
-	lua_setfield(model->state, -2, "list");
+	lua_pushcfunction(L, ir_resources_list_lua);
+	lua_setfield(L, -2, "list");
 
-	lua_pushcfunction(model->state, ir_resources_mount_lua);
-	lua_setfield(model->state, -2, "mount");
+	lua_pushcfunction(L, ir_resources_mount_lua);
+	lua_setfield(L, -2, "mount");
 
-	lua_pushcfunction(model->state, ir_model_mouselock_lua);
-	lua_setfield(model->state, -2, "mouselock");
+	lua_pushcfunction(L, ir_model_mouselock_lua);
+	lua_setfield(L, -2, "mouselock");
 
-	lua_pushcfunction(model->state, ir_subscription_poll_lua);
-	lua_setfield(model->state, -2, "poll");
+	lua_pushcfunction(L, ir_subscription_poll_lua);
+	lua_setfield(L, -2, "poll");
 
-	lua_pushcfunction(model->state, ir_view_present_lua);
-	lua_setfield(model->state, -2, "present");
+	lua_pushcfunction(L, ir_view_present_lua);
+	lua_setfield(L, -2, "present");
 
-	lua_pushcfunction(model->state, ir_view_render_lua);
-	lua_setfield(model->state, -2, "render");
+	lua_pushcfunction(L, ir_view_render_lua);
+	lua_setfield(L, -2, "render");
 
-	lua_pushcfunction(model->state, ir_view_setcamera_lua);
-	lua_setfield(model->state, -2, "setcamera");
+	lua_pushcfunction(L, ir_view_setcamera_lua);
+	lua_setfield(L, -2, "setcamera");
 
-	lua_pushcfunction(model->state, ir_view_texturemap_lua);
-	lua_setfield(model->state, -2, "texturemap");
+	lua_pushcfunction(L, ir_view_texturemap_lua);
+	lua_setfield(L, -2, "texturemap");
 
-	lua_pushcfunction(model->state, ir_resources_umount_lua);
-	lua_setfield(model->state, -2, "umount");
+	lua_pushcfunction(L, ir_resources_umount_lua);
+	lua_setfield(L, -2, "umount");
 
-	lua_pushcfunction(model->state, ir_view_width_lua);
-	lua_setfield(model->state, -2, "width");
+	lua_pushcfunction(L, ir_view_width_lua);
+	lua_setfield(L, -2, "width");
 
 	// Internal Constants
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_JOYSTICK_AXIS);
-	lua_setfield(model->state, -2, "EVENT_JOYSTICK_AXIS");
+	lua_pushinteger(L, ALLEGRO_EVENT_JOYSTICK_AXIS);
+	lua_setfield(L, -2, "EVENT_JOYSTICK_AXIS");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_JOYSTICK_BUTTON_DOWN);
-	lua_setfield(model->state, -2, "EVENT_JOYSTICK_BUTTON_DOWN");
+	lua_pushinteger(L, ALLEGRO_EVENT_JOYSTICK_BUTTON_DOWN);
+	lua_setfield(L, -2, "EVENT_JOYSTICK_BUTTON_DOWN");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_JOYSTICK_BUTTON_UP);
-	lua_setfield(model->state, -2, "EVENT_JOYSTICK_BUTTON_UP");
+	lua_pushinteger(L, ALLEGRO_EVENT_JOYSTICK_BUTTON_UP);
+	lua_setfield(L, -2, "EVENT_JOYSTICK_BUTTON_UP");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_JOYSTICK_CONFIGURATION);
-	lua_setfield(model->state, -2, "EVENT_JOYSTICK_CONFIGURATION");
+	lua_pushinteger(L, ALLEGRO_EVENT_JOYSTICK_CONFIGURATION);
+	lua_setfield(L, -2, "EVENT_JOYSTICK_CONFIGURATION");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_KEY_DOWN);
-	lua_setfield(model->state, -2, "EVENT_KEY_DOWN");
+	lua_pushinteger(L, ALLEGRO_EVENT_KEY_DOWN);
+	lua_setfield(L, -2, "EVENT_KEY_DOWN");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_KEY_CHAR);
-	lua_setfield(model->state, -2, "EVENT_KEY_CHAR");
+	lua_pushinteger(L, ALLEGRO_EVENT_KEY_CHAR);
+	lua_setfield(L, -2, "EVENT_KEY_CHAR");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_KEY_UP);
-	lua_setfield(model->state, -2, "EVENT_KEY_UP");
+	lua_pushinteger(L, ALLEGRO_EVENT_KEY_UP);
+	lua_setfield(L, -2, "EVENT_KEY_UP");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_MOUSE_AXES);
-	lua_setfield(model->state, -2, "EVENT_MOUSE_AXES");
+	lua_pushinteger(L, ALLEGRO_EVENT_MOUSE_AXES);
+	lua_setfield(L, -2, "EVENT_MOUSE_AXES");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_MOUSE_BUTTON_DOWN);
-	lua_setfield(model->state, -2, "EVENT_MOUSE_BUTTON_DOWN");
+	lua_pushinteger(L, ALLEGRO_EVENT_MOUSE_BUTTON_DOWN);
+	lua_setfield(L, -2, "EVENT_MOUSE_BUTTON_DOWN");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_MOUSE_BUTTON_UP);
-	lua_setfield(model->state, -2, "EVENT_MOUSE_BUTTON_UP");
+	lua_pushinteger(L, ALLEGRO_EVENT_MOUSE_BUTTON_UP);
+	lua_setfield(L, -2, "EVENT_MOUSE_BUTTON_UP");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY);
-	lua_setfield(model->state, -2, "EVENT_MOUSE_ENTER_DISPLAY");
+	lua_pushinteger(L, ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY);
+	lua_setfield(L, -2, "EVENT_MOUSE_ENTER_DISPLAY");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY);
-	lua_setfield(model->state, -2, "EVENT_MOUSE_LEAVE_DISPLAY");
+	lua_pushinteger(L, ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY);
+	lua_setfield(L, -2, "EVENT_MOUSE_LEAVE_DISPLAY");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_MOUSE_WARPED);
-	lua_setfield(model->state, -2, "EVENT_MOUSE_WARPED");
+	lua_pushinteger(L, ALLEGRO_EVENT_MOUSE_WARPED);
+	lua_setfield(L, -2, "EVENT_MOUSE_WARPED");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_TIMER);
-	lua_setfield(model->state, -2, "EVENT_TIMER");
+	lua_pushinteger(L, ALLEGRO_EVENT_TIMER);
+	lua_setfield(L, -2, "EVENT_TIMER");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_EXPOSE);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_EXPOSE");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_EXPOSE);
+	lua_setfield(L, -2, "EVENT_DISPLAY_EXPOSE");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_RESIZE);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_RESIZE");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_RESIZE);
+	lua_setfield(L, -2, "EVENT_DISPLAY_RESIZE");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_CLOSE);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_CLOSE");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_CLOSE);
+	lua_setfield(L, -2, "EVENT_DISPLAY_CLOSE");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_LOST);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_LOST");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_LOST);
+	lua_setfield(L, -2, "EVENT_DISPLAY_LOST");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_FOUND);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_FOUND");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_FOUND);
+	lua_setfield(L, -2, "EVENT_DISPLAY_FOUND");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_SWITCH_IN);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_SWITCH_IN");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_SWITCH_IN);
+	lua_setfield(L, -2, "EVENT_DISPLAY_SWITCH_IN");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_SWITCH_OUT);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_SWITCH_OUT");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_SWITCH_OUT);
+	lua_setfield(L, -2, "EVENT_DISPLAY_SWITCH_OUT");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_ORIENTATION);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_ORIENTATION");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_ORIENTATION);
+	lua_setfield(L, -2, "EVENT_DISPLAY_ORIENTATION");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_HALT_DRAWING);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_HALT_DRAWING");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_HALT_DRAWING);
+	lua_setfield(L, -2, "EVENT_DISPLAY_HALT_DRAWING");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_RESUME_DRAWING);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_RESUME_DRAWING");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_RESUME_DRAWING);
+	lua_setfield(L, -2, "EVENT_DISPLAY_RESUME_DRAWING");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_TIMER);
-	lua_setfield(model->state, -2, "EVENT_TIMER");
+	lua_pushinteger(L, ALLEGRO_EVENT_TIMER);
+	lua_setfield(L, -2, "EVENT_TIMER");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_TOUCH_BEGIN);
-	lua_setfield(model->state, -2, "EVENT_TOUCH_BEGIN");
+	lua_pushinteger(L, ALLEGRO_EVENT_TOUCH_BEGIN);
+	lua_setfield(L, -2, "EVENT_TOUCH_BEGIN");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_TOUCH_END);
-	lua_setfield(model->state, -2, "EVENT_TOUCH_END");
+	lua_pushinteger(L, ALLEGRO_EVENT_TOUCH_END);
+	lua_setfield(L, -2, "EVENT_TOUCH_END");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_TOUCH_MOVE);
-	lua_setfield(model->state, -2, "EVENT_TOUCH_MOVE");
+	lua_pushinteger(L, ALLEGRO_EVENT_TOUCH_MOVE);
+	lua_setfield(L, -2, "EVENT_TOUCH_MOVE");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_TOUCH_CANCEL);
-	lua_setfield(model->state, -2, "EVENT_TOUCH_CANCEL");
+	lua_pushinteger(L, ALLEGRO_EVENT_TOUCH_CANCEL);
+	lua_setfield(L, -2, "EVENT_TOUCH_CANCEL");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_CONNECTED);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_CONNECTED");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_CONNECTED);
+	lua_setfield(L, -2, "EVENT_DISPLAY_CONNECTED");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DISPLAY_DISCONNECTED);
-	lua_setfield(model->state, -2, "EVENT_DISPLAY_DISCONNECTED");
+	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_DISCONNECTED);
+	lua_setfield(L, -2, "EVENT_DISPLAY_DISCONNECTED");
 
-	lua_pushinteger(model->state, ALLEGRO_EVENT_DROP);
-	lua_setfield(model->state, -2, "EVENT_DROP");
+	lua_pushinteger(L, ALLEGRO_EVENT_DROP);
+	lua_setfield(L, -2, "EVENT_DROP");
 
-	lua_setfield(model->state, -2, "internal");
+    // meta
+    lua_createtable(L, 0, 2);
+
+    // shader_meta
+	lua_createtable(L, 0, 1);
+
+	lua_pushcfunction(L, ir_shader_drop_lua);
+	lua_setfield(L, -2, "__gc");
+
+	lua_createtable(L, 0, 1);
+
+	lua_pushstring(L, "shader");
+	lua_setfield(L, -2, "__type");
+
+	lua_pushcfunction(L, ir_shader_use_lua);
+	lua_setfield(L, -2, "use");
+
+	lua_setfield(L, -2, "__index");
+
+    lua_setfield(L, -2, "shader");
+    // /shader_meta
+
+    // mat_meta
+	lua_createtable(L, 0, 3);
+
+	lua_pushcfunction(L, ir_matrix_index_lua);
+	lua_setfield(L, -2, "__index");
+
+	lua_pushcfunction(L, ir_matrix_multiply_lua);
+	lua_setfield(L, -2, "__mul");
+
+    lua_pushcfunction(L, ir_matrix_free_lua);
+    lua_setfield(L, -2, "__gc");
+
+    lua_setfield(L, -2, "mat");
+    // /mat_meta
+
+    lua_setfield(L, -2, "meta");
+    // /meta
+
+	lua_setfield(L, -2, "internal");
 }
 
 int ir_model_mouselock_lua(lua_State *L) {

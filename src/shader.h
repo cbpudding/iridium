@@ -9,6 +9,7 @@
 
 #include <allegro5/allegro_opengl.h>
 #include <GL/glext.h>
+#include <luajit-2.1/lua.h>
 
 typedef struct {
 	GLint camera;
