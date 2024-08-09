@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <allegro5/allegro.h>
-#include <allegro5/allegro_physfs.h>
 #include <luajit-2.1/lua.h>
 #include <physfs.h>
 #include <stdio.h>

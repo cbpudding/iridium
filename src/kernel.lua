@@ -74,12 +74,20 @@ local function parse_key_bind(name, tokens)
     end
 end
 
--- Format: mouse axis <x|y> <locked|normal> [inverse]
+-- Format: mouse axis <x|y> <locked <radius>|normal [inverse]>
 local function parse_mouse_axis_bind(name, tokens)
     if #tokens >= 4 then
         local axis = tokens[3]
-        local locked = tokens[4] == "locked"
-        local inverse = tokens[5] == "inverse"
+        local locked
+        if tokens[4] == "locked" then
+            if #tokens < 5 then
+                ir.warn("parse_mouse_axis_bind: Locked mouse bind \"" .. name .. "\" missing radius")
+                return
+            end
+            locked = tonumber(tokens[5])
+        else
+            locked = nil
+        end
         if axis == "x" or axis == "y" then
             if not locked and tokens[4] ~= "normal" then
                 ir.warn("parse_mouse_axis_bind: Invalid behavior \"" .. tokens[4] .. "\". Defaulting to \"normal\".")
@@ -87,9 +95,16 @@ local function parse_mouse_axis_bind(name, tokens)
             irpriv.bind[name] = 0
             if locked then
                 add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
-                    -- ...
+                    local value = 0.0
+                    if axis == "x" then
+                        value = math.min(math.max(event.x / locked, 1.0), -1.0)
+                    elseif axis == "y" then
+                        value = math.min(math.max(event.y / locked, 1.0), -1.0)
+                    end
+                    irpriv.bind[name] = value
                 end)
             else
+                local inverse = tokens[5] == "inverse"
                 add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
                     local value = 0.0
                     if axis == "x" then
