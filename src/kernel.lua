@@ -86,7 +86,7 @@ local function parse_mouse_axis_bind(name, tokens)
             end
             locked = tonumber(tokens[5])
         else
-            locked = nil
+            locked = false
         end
         if axis == "x" or axis == "y" then
             if not locked and tokens[4] ~= "normal" then
@@ -94,14 +94,20 @@ local function parse_mouse_axis_bind(name, tokens)
             end
             irpriv.bind[name] = 0
             if locked then
+                local delta = 0.0
                 add_event_listener(ir.internal.EVENT_MOUSE_AXES, nil, function(event)
                     local value = 0.0
                     if axis == "x" then
-                        value = math.min(math.max(event.x / locked, 1.0), -1.0)
+                        delta = delta + event.dx
                     elseif axis == "y" then
-                        value = math.min(math.max(event.y / locked, 1.0), -1.0)
+                        delta = delta + event.dy
                     end
-                    irpriv.bind[name] = value
+                    irpriv.bind[name] = math.min(math.max(delta / locked, 1.0), -1.0)
+                end)
+                -- Yes, I made postupdate handlers just for this. Fight me. ~ahill
+                add_event_listener("postupdate", nil, function()
+                    delta = 0.0
+                    irpriv.bind[name] = 0.0
                 end)
             else
                 local inverse = tokens[5] == "inverse"
@@ -366,6 +372,10 @@ function irpriv.kernel(opts)
                             break
                         end
                     end
+                end
+                -- Don't forget about post-update handlers so some controls behave properly! ~ahill
+                for _, handler in ipairs(ir.internal.binds.postupdate) do
+                    handler()
                 end
             end
         end

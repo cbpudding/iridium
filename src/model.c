@@ -115,7 +115,7 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(lua_State *L) {
-	lua_createtable(L, 0, 48);
+	lua_createtable(L, 0, 47);
 
 	// Internal Functions
 
@@ -258,9 +258,6 @@ void ir_model_new_internal(lua_State *L) {
 
 	lua_pushinteger(L, ALLEGRO_EVENT_DISPLAY_DISCONNECTED);
 	lua_setfield(L, -2, "EVENT_DISPLAY_DISCONNECTED");
-
-	lua_pushinteger(L, ALLEGRO_EVENT_DROP);
-	lua_setfield(L, -2, "EVENT_DROP");
 
 	// meta
 	lua_createtable(L, 0, 2);
