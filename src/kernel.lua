@@ -23,6 +23,9 @@ irpriv.cmd = {
     end,
     mouselock = function(state)
         return {4, state}
+    end,
+    resetdeltas = function()
+        return {5}
     end
 }
 
@@ -104,8 +107,7 @@ local function parse_mouse_axis_bind(name, tokens)
                     end
                     irpriv.bind[name] = math.min(math.max(delta / locked, 1.0), -1.0)
                 end)
-                -- Yes, I made postupdate handlers just for this. Fight me. ~ahill
-                add_event_listener("postupdate", nil, function()
+                add_event_listener("resetdelta", nil, function()
                     delta = 0.0
                     irpriv.bind[name] = 0.0
                 end)
@@ -235,6 +237,12 @@ function irpriv.kernel(opts)
             -- ir.cmd.mouselock
             [4] = function()
                 ir.internal.mouselock(cmd[2])
+            end,
+            -- ir.cmd.resetdeltas
+            [5] = function()
+                for _, handler in ipairs(ir.internal.binds.resetdelta) do
+                    handler()
+                end
             end
         }
         if cmds[cmd[1]] and type(cmds[cmd[1]]) == "function" then
@@ -372,10 +380,6 @@ function irpriv.kernel(opts)
                             break
                         end
                     end
-                end
-                -- Don't forget about post-update handlers so some controls behave properly! ~ahill
-                for _, handler in ipairs(ir.internal.binds.postupdate) do
-                    handler()
                 end
             end
         end
