@@ -506,22 +506,6 @@ function ir.viewport.width()
     return ir.internal.width()
 end
 
--- Camera Functions
-
-ir.camera = {}
-
-function ir.camera.perspective(aspect, fov, near, far)
-    -- Of all the things I miss, I miss my mind the most. ~ahill
-    local inv_dist = math.tan(fov / 2)
-    local range = near - far
-    return ir.mat.from{
-        1.0 / (aspect * inv_dist), 0.0,            0.0,                   0.0,
-        0.0,                       1.0 / inv_dist, 0.0,                   0.0,
-        0.0,                       0.0,            (-near - far) / range, (2 * far * near) / range,
-        0.0,                       0.0,            1.0,                   0.0
-    }
-end
-
 -- Program Defaults
 
 ---@diagnostic disable-next-line: duplicate-set-field
