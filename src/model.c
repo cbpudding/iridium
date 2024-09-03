@@ -115,7 +115,7 @@ int ir_model_time_lua(lua_State *L) {
 
 // Abandon all hope ye who enter here.
 void ir_model_new_internal(lua_State *L) {
-	lua_createtable(L, 0, 47);
+	lua_createtable(L, 0, 48);
 
 	// Internal Functions
 
@@ -130,6 +130,9 @@ void ir_model_new_internal(lua_State *L) {
 
 	lua_pushcfunction(L, ir_view_fullscreen_lua);
 	lua_setfield(L, -2, "fullscreen");
+
+	lua_pushcfunction(L, ir_subscription_keycode_lua);
+	lua_setfield(L, -2, "keycode");
 
 	lua_pushcfunction(L, ir_view_height_lua);
 	lua_setfield(L, -2, "height");

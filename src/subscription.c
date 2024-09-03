@@ -75,6 +75,23 @@ int ir_subscription_frametimer_lua(lua_State *L) {
 	return 0;
 }
 
+// Allegro apparently doesn't have this functionality, so I'll need to hack it
+// together. ~ahill
+extern const char *_al_keyboard_common_names[];
+
+int ir_subscription_keycode_lua(lua_State *L) {
+	char *keycode = lua_tostring(L, -1);
+	for(int i = 0; i < ALLEGRO_KEY_MAX; i++) {
+		if(!strcmp(_al_keyboard_common_names[i], keycode)) {
+			lua_pop(L, 1);
+			lua_pushinteger(L, i);
+			return 1;
+		}
+	}
+	lua_pop(L, 1);
+	return 0;
+}
+
 int ir_subscription_poll_lua(lua_State *L) {
 	ALLEGRO_EVENT event;
 	al_wait_for_event(ENGINE.subs.queue, &event);

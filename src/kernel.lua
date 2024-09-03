@@ -47,7 +47,7 @@ end
 -- Format: key <keycode> <hold|toggle>
 local function parse_key_bind(name, tokens)
     if #tokens == 3 then
-        local keycode = tonumber(tokens[2])
+        local keycode = ir.internal.keycode(string.upper(tokens[2]))
         if keycode then
             irpriv.bind[name] = 0
             if tokens[3] == "toggle" then
