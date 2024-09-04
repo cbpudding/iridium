@@ -451,7 +451,7 @@ setmetatable(ir.fs, fs_meta(""))
 
 ir.listener = {}
 
-function ir.listener.bind(bind, cond, msg)
+function ir.listener.bind(bind, cond, msg, imsg)
     local active = false
     return {
         function()
@@ -460,6 +460,9 @@ function ir.listener.bind(bind, cond, msg)
                 return msg
             elseif not cond(ir.bind[bind]) and active then
                 active = false
+                if imsg then
+                    return imsg
+                end
             end
             return nil
         end
