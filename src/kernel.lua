@@ -331,6 +331,10 @@ function irpriv.kernel(opts)
             stage.camera = stage.camera or ir.mat.identity()
             ir.internal.setcamera(stage.camera)
 
+            -- If the title has been defined, use that. Otherwise, use "Iridium"
+            -- as a placeholder. ~ahill
+            ir.internal.title(stage.title or "Iridium")
+
             local vertices = {}
 
             -- In this case, "tess" is short for tessellation. I just didn't want to write "tessellation" a lot. ~ahill

@@ -32,6 +32,7 @@ int ir_view_present_lua(lua_State *L);
 int ir_view_render_lua(lua_State *L);
 int ir_view_setcamera_lua(lua_State *L);
 int ir_view_texturemap_lua(lua_State *L);
+int ir_view_title_lua(lua_State *L);
 int ir_view_width_lua(lua_State *L);
 
 #endif

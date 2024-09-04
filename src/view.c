@@ -249,6 +249,12 @@ int ir_view_texturemap_lua(lua_State *L) {
 	return 1;
 }
 
+int ir_view_title_lua(lua_State *L) {
+	al_set_window_title(ENGINE.view.display, lua_tostring(L, -1));
+	lua_pop(L, 1);
+	return 0;
+}
+
 int ir_view_width_lua(lua_State *L) {
 	int height;
 	int width;
