@@ -485,6 +485,12 @@ end
 
 ir.trigger = {}
 
+function ir.trigger.band(value, threshold)
+    return function(v)
+        return (v >= (value + threshold)) or (v <= (value - threshold))
+    end
+end
+
 function ir.trigger.under(threshold)
     return function(v)
         return v < threshold
